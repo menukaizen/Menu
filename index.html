@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Yakın Kafe - Dijital Menü</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -36,26 +37,24 @@
     <div id="loader-wrapper"><div class="spinner"></div><div style="font-weight:500;">Menü Yükleniyor...</div></div>
 
     <header>
-        <div class="header-subtitle">Makarna · Express Teslimat</div>
+        <div class="header-subtitle">Makarna · Lezzet Durağı</div>
         <h1>Yakın Kafe</h1>
     </header>
 
-    <div class="menu-container" id="menuContainer">
-        <!-- Ürünler Firebase'den buraya gelecek -->
-    </div>
+    <div class="menu-container" id="menuContainer"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-        // BURAYA KENDİ FIREBASE AYARLARINI YAPIŞTIR
         const firebaseConfig = {
-            apiKey: "SENIN_API_KEY",
-            authDomain: "SENIN_AUTH_DOMAIN",
-            projectId: "SENIN_PROJECT_ID",
-            storageBucket: "SENIN_STORAGE_BUCKET",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID"
+            apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
+            authDomain: "yakinkafe.firebaseapp.com",
+            projectId: "yakinkafe",
+            storageBucket: "yakinkafe.firebasestorage.app",
+            messagingSenderId: "706625633005",
+            appId: "1:706625633005:web:3d7efed129b2d0d895eae4",
+            measurementId: "G-THPJ9R183N"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -71,7 +70,6 @@
                     return;
                 }
 
-                // Ürünleri kategorilere göre grupla
                 const categories = {};
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -102,10 +100,9 @@
                     });
                     htmlContent += `</div>`;
                 }
-                
                 container.innerHTML = htmlContent;
             } catch (error) {
-                console.error("Veri çekme hatası:", error);
+                console.error("Hata:", error);
                 container.innerHTML = '<div class="empty-msg">Bağlantı hatası oluştu.</div>';
             }
             document.getElementById('loader-wrapper').classList.add('loaded-hide');
