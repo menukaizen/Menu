@@ -72,7 +72,7 @@
             <div class="form-group full">
                 <label>Yemek Fotoğrafı Seç (JPEG, PNG vb.)</label>
                 <input type="file" id="pImageFile" accept="image/*">
-                <small style="color: #7f8fa6;">Bilgisayarınızdan veya telefonunuzdan doğrudan bir resim seçin.</small>
+                <small style="color: #7f8fa6;">Seçilen fotoğraf otomatik olarak optimize edilip yüklenecektir.</small>
             </div>
             <div class="form-group full">
                 <button id="saveBtn" class="btn">Ürünü Kaydet</button>
@@ -82,7 +82,7 @@
 
         <table>
             <thead>
-                <tr><th>Resim</th><th>İsim</th><th>Kategori</th><th>Fiyat</th><th>İşlem</th></tr>
+                <tr><th>Resmi</th><th>İsim</th><th>Kategori</th><th>Fiyat</th><th>İşlem</th></tr>
             </thead>
             <tbody id="productTable"></tbody>
         </table>
@@ -124,12 +124,45 @@
             }
         });
 
-        const convertFileToBase64 = (file) => {
+        // Resmi otomatik boyutlandıran ve optimize eden akıllı fonksiyon (Resize)
+        const resizeAndConvertImage = (file) => {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Maksimum genişlik/yükseklik sınırı (Menü için ideal boyut: 500px)
+                        const MAX_SIZE = 500;
+                        if (width > height) {
+                            if (width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            }
+                        } else {
+                            if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // JPEG formatına sıkıştırarak çevir (Kalite: %80)
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = (error) => reject(error);
+                };
+                reader.onerror = (error) => reject(error);
             });
         };
 
@@ -145,10 +178,12 @@
 
             if(!name || !price || fileInput.files.length === 0) return alert("İsim, fiyat ve resim seçimi zorunludur!");
             
-            btn.innerText = "Kaydediliyor...";
+            btn.innerText = "Fotoğraf Sıkıştırılıyor & Kaydediliyor...";
             try {
-                const imageUrl = await convertFileToBase64(fileInput.files[0]);
+                // Resmi küçültüp optimize et
+                const imageUrl = await resizeAndConvertImage(fileInput.files[0]);
                 
+                // Firestore'a kaydet
                 await addDoc(collection(db, "products"), {
                     name, category, oldPrice, price, desc, imageUrl, createdAt: new Date()
                 });
