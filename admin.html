@@ -28,7 +28,6 @@
         
         #imagePreview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; display: none; }
 
-        /* KOD İLE EKLE MODAL (PENCERE) STİLİ */
         #codeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); }
         .modal-content textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 13px; box-sizing: border-box; resize: vertical; }
@@ -54,17 +53,16 @@
     <!-- KOD İLE EKLEME PENCERESİ -->
     <div id="codeModal">
         <div class="modal-content">
-            <h3>Kod / Toplu Metin ile Ürün Ekle</h3>
+            <h3>Kod / Toplu Metin ile Ürün Ekle (Akıllı Görsel Destekli)</h3>
             <p style="font-size: 13px; color: #7f8fa6;">
                 Her satıra bir ürün gelecek şekilde şu formatta yazın:<br>
-                <b>Ürün Adı | Kategori | Fiyat | Açıklama</b><br>
-                <i>Örnek: Mantı | Makarnalar | 350 | Özel yoğurtlu ev mantısı</i>
+                <b>Ürün Adı | Kategori | İndirimli Fiyat | Eski Fiyat | Açıklama</b>
             </p>
-            <textarea id="bulkCodeInput" placeholder="Mantı | Makarnalar | 350 | Özel soslu ev mantısı
-Cola | İçecekler | 50 | Soğuk kutu kola"></textarea>
+            <textarea id="bulkCodeInput" placeholder="Mantı | Makarnalar | 350 | 450 | Özel yoğurtlu ev mantısı
+Cola | İçecekler | 50 | 60 | Soğuk kutu kola"></textarea>
             <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
                 <button id="closeModalBtn" class="btn btn-cancel" style="display:inline-block;">Kapat</button>
-                <button id="processBulkBtn" class="btn">Hepsini Yükle</button>
+                <button id="processBulkBtn" class="btn">Akıllı Yükle</button>
             </div>
             <p id="bulkStatusMsg" style="color:green; font-size:13px; margin-top: 10px;"></p>
         </div>
@@ -89,7 +87,7 @@ Cola | İçecekler | 50 | Soğuk kutu kola"></textarea>
             <div class="form-group">
                 <label>Kategori</label>
                 <select id="pCategory">
-                    <option>Başlangıçlar</option><option>Makarnalar</option><option>Risottolar</option><option>Yan Ürünler</option><option>Tatlılar</option><option>İçecekler</option>
+                    <option>Başlangıçlar</option><option>Makarnalar</option><option>Risottolar</option><option>Yan Ürünler</option><option>Tatlılar</option><option>İçecekler</option><option>Sıcak İçecekler</option><option>Soğuk Kahveler</option>
                 </select>
             </div>
             <div class="form-group">
@@ -161,18 +159,38 @@ Cola | İçecekler | 50 | Soğuk kutu kola"></textarea>
             }
         });
 
-        // Modal (Kod ile Ekle Penceresi) Kontrolleri
         const codeModal = document.getElementById('codeModal');
         document.getElementById('openCodeModalBtn').onclick = () => codeModal.style.display = 'flex';
         document.getElementById('closeModalBtn').onclick = () => codeModal.style.display = 'none';
 
-        // Toplu Kod İşleme Butonu
+        // Akıllı Yemek Görseli Eşleştirici (Ürün adına göre otomatik profesyonel görsel atar)
+        function getSmartFoodImage(productName) {
+            const name = productName.toLowerCase();
+            if (name.includes('makarna') || name.includes('fettuccine') || name.includes('spaghetti') || name.includes('penne') || name.includes('lazanya')) {
+                return "https://images.unsplash.com/photo-1621996346565-e3d5d6283315?w=500&auto=format&fit=crop&q=60";
+            } else if (name.includes('tavuk') || name.includes('sepeti') || name.includes('göğüs')) {
+                return "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&auto=format&fit=crop&q=60";
+            } else if (name.includes('risotto')) {
+                return "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=500&auto=format&fit=crop&q=60";
+            } else if (name.includes('tatlı') || name.includes('tiramisu') || name.includes('sütlaç')) {
+                return "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&auto=format&fit=crop&q=60";
+            } else if (name.includes('kola') || name.includes('soda') || name.includes('su') || name.includes('içecek')) {
+                return "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&auto=format&fit=crop&q=60";
+            } else if (name.includes('kahve') || name.includes('latte') || name.includes('americano')) {
+                return "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500&auto=format&fit=crop&q=60";
+            } else if (name.includes('patates')) {
+                return "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&auto=format&fit=crop&q=60";
+            }
+            return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60"; // Varsayılan şık yemek
+        }
+
+        // Toplu Kod İşleme ve Akıllı Görsel Atama
         document.getElementById('processBulkBtn').onclick = async () => {
             const text = document.getElementById('bulkCodeInput').value.trim();
             const status = document.getElementById('bulkStatusMsg');
             if(!text) return alert("Lütfen ürünleri ekleyin!");
 
-            status.innerText = "Yükleniyor...";
+            status.innerText = "Akıllı görseller atanıyor ve yükleniyor...";
             const lines = text.split("\n");
             let count = 0;
 
@@ -183,17 +201,19 @@ Cola | İçecekler | 50 | Soğuk kutu kola"></textarea>
                     const name = parts[0] || "Ürün";
                     const category = parts[1] || "Makarnalar";
                     const price = parts[2] || "100";
-                    const desc = parts[3] || "";
+                    const oldPrice = parts[3] || "";
+                    const desc = parts[4] || "";
+
+                    // Akıllı görseli seç
+                    const imageUrl = getSmartFoodImage(name);
 
                     await addDoc(collection(db, "products"), {
-                        name, category, price, desc, 
-                        oldPrice: "", 
-                        imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", // Varsayılan şık yemek görseli
+                        name, category, price, oldPrice, desc, imageUrl, 
                         createdAt: new Date()
                     });
                     count++;
                 }
-                status.innerText = `${count} ürün başarıyla eklendi!`;
+                status.innerText = `${count} ürün akıllı görselleriyle birlikte başarıyla eklendi!`;
                 setTimeout(() => {
                     codeModal.style.display = 'none';
                     status.innerText = "";
@@ -207,7 +227,6 @@ Cola | İçecekler | 50 | Soğuk kutu kola"></textarea>
             }
         };
 
-        // Ön izleme
         const fileInput = document.getElementById('pImageFile');
         const imagePreview = document.getElementById('imagePreview');
 
@@ -325,10 +344,7 @@ Cola | İçecekler | 50 | Soğuk kutu kola"></textarea>
                 document.getElementById('pPrice').value = data.price;
                 document.getElementById('pDesc').value = data.desc || '';
                 
-                if (data.imageUrl && !data.imageUrl.startsWith("data:")) {
-                    imagePreview.src = data.imageUrl;
-                    imagePreview.style.display = "block";
-                } else if (data.imageUrl) {
+                if (data.imageUrl) {
                     imagePreview.src = data.imageUrl;
                     imagePreview.style.display = "block";
                 }
