@@ -3,31 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Yönetim Paneli</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #e84118; --bg: #f5f6fa; --dark: #2f3640; }
         body { font-family: 'Poppins', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
-        
-        /* Login Ekranı */
         #login-screen { position: fixed; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-box { background: white; padding: 40px; border-radius: 10px; width: 300px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .login-box input, .login-box button { width: 100%; margin-top: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
         .login-box button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
-        
-        /* Ana Panel */
         #main-app { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
         .btn { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; }
         .btn-red { background: #c23616; }
-        
-        /* Form Kutusu */
         .form-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; display: grid; gap: 15px; grid-template-columns: 1fr 1fr; }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full { grid-column: span 2; }
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        
-        /* Tablo */
         table { width: 100%; background: white; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f1f2f6; }
@@ -65,20 +58,21 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Normal Fiyat (TL)</label>
+                <label>Normal Fiyat (Üstü Çizili TL)</label>
                 <input type="number" id="pOldPrice" placeholder="550">
             </div>
             <div class="form-group">
-                <label>İndirimli Fiyat (TL)</label>
+                <label>İndirimli Fiyat (Güncel TL)</label>
                 <input type="number" id="pPrice" placeholder="440">
             </div>
             <div class="form-group full">
                 <label>Açıklama</label>
-                <textarea id="pDesc" rows="2" placeholder="Malzemeler..."></textarea>
+                <textarea id="pDesc" rows="2" placeholder="İçindeki malzemeler..."></textarea>
             </div>
             <div class="form-group full">
-                <label>Resim Yükle</label>
-                <input type="file" id="pImage" accept="image/*">
+                <label>Resim Linki (URL)</label>
+                <input type="text" id="pImageUrl" placeholder="Örn: https://i.ibb.co/xxxxx/yemek.jpg">
+                <small style="color: #7f8fa6;">Resmi tr.imgbb.com adresine yükleyip "Resim bağlantısını" buraya yapıştırın.</small>
             </div>
             <div class="form-group full">
                 <button id="saveBtn" class="btn">Ürünü Kaydet</button>
@@ -98,24 +92,21 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-storage.js";
 
-        // BURAYA KENDİ FIREBASE AYARLARINI YAPIŞTIR
         const firebaseConfig = {
-            apiKey: "SENIN_API_KEY",
-            authDomain: "SENIN_AUTH_DOMAIN",
-            projectId: "SENIN_PROJECT_ID",
-            storageBucket: "SENIN_STORAGE_BUCKET",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID"
+            apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
+            authDomain: "yakinkafe.firebaseapp.com",
+            projectId: "yakinkafe",
+            storageBucket: "yakinkafe.firebasestorage.app",
+            messagingSenderId: "706625633005",
+            appId: "1:706625633005:web:3d7efed129b2d0d895eae4",
+            measurementId: "G-THPJ9R183N"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
-        // Giriş - Çıkış İşlemleri
         document.getElementById('loginBtn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => document.getElementById('errorMsg').style.display = 'block');
@@ -133,34 +124,34 @@
             }
         });
 
-        // Ürün Ekleme İşlemi
         document.getElementById('saveBtn').onclick = async () => {
             const btn = document.getElementById('saveBtn');
             const msg = document.getElementById('statusMsg');
-            const file = document.getElementById('pImage').files[0];
+            const imageUrl = document.getElementById('pImageUrl').value;
             const name = document.getElementById('pName').value;
             const category = document.getElementById('pCategory').value;
             const oldPrice = document.getElementById('pOldPrice').value;
             const price = document.getElementById('pPrice').value;
             const desc = document.getElementById('pDesc').value;
 
-            if(!name || !price || !file) return alert("İsim, geçerli fiyat ve resim zorunludur!");
+            if(!name || !price || !imageUrl) return alert("İsim, geçerli fiyat ve resim linki zorunludur!");
             
-            btn.innerText = "Yükleniyor...";
+            btn.innerText = "Kaydediliyor...";
             try {
-                // Resmi Storage'a yükle
-                const imgRef = ref(storage, 'menu/' + Date.now() + '_' + file.name);
-                await uploadBytes(imgRef, file);
-                const imageUrl = await getDownloadURL(imgRef);
-
-                // Verileri Firestore'a kaydet
                 await addDoc(collection(db, "products"), {
                     name, category, oldPrice, price, desc, imageUrl, createdAt: new Date()
                 });
 
                 msg.innerText = "Ürün başarıyla eklendi!";
                 setTimeout(() => msg.innerText = "", 3000);
-                loadAdminMenu(); // Tabloyu yenile
+                
+                document.getElementById('pName').value = '';
+                document.getElementById('pOldPrice').value = '';
+                document.getElementById('pPrice').value = '';
+                document.getElementById('pDesc').value = '';
+                document.getElementById('pImageUrl').value = '';
+                
+                loadAdminMenu();
             } catch (e) {
                 console.error(e);
                 alert("Hata oluştu!");
@@ -168,7 +159,6 @@
             btn.innerText = "Ürünü Kaydet";
         };
 
-        // Tabloyu Doldurma ve Silme
         async function loadAdminMenu() {
             const tbody = document.getElementById('productTable');
             tbody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
@@ -179,7 +169,7 @@
                 const item = d.data();
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><img src="${item.imageUrl}"></td>
+                    <td><img src="${item.imageUrl}" alt="Yemek"></td>
                     <td>${item.name}</td>
                     <td>${item.category}</td>
                     <td>${item.price} TL</td>
@@ -190,7 +180,7 @@
         }
 
         window.deleteProduct = async (id) => {
-            if(confirm("Silmek istediğinize emin misiniz?")) {
+            if(confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
                 await deleteDoc(doc(db, "products", id));
                 loadAdminMenu();
             }
