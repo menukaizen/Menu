@@ -7,7 +7,7 @@
     <title>Yönetim Paneli</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #e84118; --bg: #f5f6fa; --dark: #2f3640; }
+        :root { --primary: #e84118; --bg: #f5f6fa; --dark: #2f3640; --edit: #fbc531; }
         body { font-family: 'Poppins', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
         #login-screen { position: fixed; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-box { background: white; padding: 40px; border-radius: 10px; width: 300px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
@@ -17,6 +17,8 @@
         .header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
         .btn { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; }
         .btn-red { background: #c23616; }
+        .btn-edit { background: #e1b12c; color: white; margin-right: 5px; }
+        .btn-cancel { background: #7f8fa6; display: none; margin-left: 10px; }
         .form-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; display: grid; gap: 15px; grid-template-columns: 1fr 1fr; }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full { grid-column: span 2; }
@@ -41,12 +43,14 @@
 
     <div id="main-app">
         <div class="header">
-            <h2>Menü Yönetimi</h2>
+            <h2 id="formTitle">Yeni Ürün Ekle</h2>
             <button id="logoutBtn" class="btn btn-red">Çıkış Yap</button>
         </div>
 
         <div class="form-card">
-            <div class="form-group full"><h3>Yeni Ürün Ekle</h3></div>
+            <!-- Düzenleme Modu için Gizli ID Alanı -->
+            <input type="hidden" id="editProductId">
+
             <div class="form-group">
                 <label>Ürün Adı</label>
                 <input type="text" id="pName" placeholder="Örn: Lazanya">
@@ -70,19 +74,20 @@
                 <textarea id="pDesc" rows="2" placeholder="İçindeki malzemeler..."></textarea>
             </div>
             <div class="form-group full">
-                <label>Yemek Fotoğrafı Seç (JPEG, PNG vb.)</label>
+                <label>Yemek Fotoğrafı (Değiştirmek istemiyorsanız boş bırakın)</label>
                 <input type="file" id="pImageFile" accept="image/*">
-                <small style="color: #7f8fa6;">Seçilen fotoğraf otomatik olarak optimize edilip yüklenecektir.</small>
+                <small style="color: #7f8fa6;">Yeni fotoğraf seçilmezse mevcut fotoğraf korunur.</small>
             </div>
-            <div class="form-group full">
+            <div class="form-group full" style="display: flex; align-items: center;">
                 <button id="saveBtn" class="btn">Ürünü Kaydet</button>
-                <p id="statusMsg" style="color:green; font-size:14px;"></p>
+                <button id="cancelBtn" class="btn btn-cancel">İptal</button>
+                <p id="statusMsg" style="color:green; font-size:14px; margin-left: 15px;"></p>
             </div>
         </div>
 
         <table>
             <thead>
-                <tr><th>Resmi</th><th>İsim</th><th>Kategori</th><th>Fiyat</th><th>İşlem</th></tr>
+                <tr><th>Resim</th><th>İsim</th><th>Kategori</th><th>Fiyat</th><th>İşlem</th></tr>
             </thead>
             <tbody id="productTable"></tbody>
         </table>
@@ -91,7 +96,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
@@ -124,7 +129,7 @@
             }
         });
 
-        // Resmi otomatik boyutlandıran ve optimize eden akıllı fonksiyon (Resize)
+        // Resize fonksiyonu
         const resizeAndConvertImage = (file) => {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -134,31 +139,17 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        // Maksimum genişlik/yükseklik sınırı (Menü için ideal boyut: 500px)
+                        let width = img.width, height = img.height;
                         const MAX_SIZE = 500;
                         if (width > height) {
-                            if (width > MAX_SIZE) {
-                                height *= MAX_SIZE / width;
-                                width = MAX_SIZE;
-                            }
+                            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
                         } else {
-                            if (height > MAX_SIZE) {
-                                width *= MAX_SIZE / height;
-                                height = MAX_SIZE;
-                            }
+                            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
                         }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
+                        canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // JPEG formatına sıkıştırarak çevir (Kalite: %80)
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                        resolve(dataUrl);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
                     };
                     img.onerror = (error) => reject(error);
                 };
@@ -166,9 +157,11 @@
             });
         };
 
+        // Kaydet veya Güncelle Butonu
         document.getElementById('saveBtn').onclick = async () => {
             const btn = document.getElementById('saveBtn');
             const msg = document.getElementById('statusMsg');
+            const editId = document.getElementById('editProductId').value;
             const fileInput = document.getElementById('pImageFile');
             const name = document.getElementById('pName').value;
             const category = document.getElementById('pCategory').value;
@@ -176,35 +169,43 @@
             const price = document.getElementById('pPrice').value;
             const desc = document.getElementById('pDesc').value;
 
-            if(!name || !price || fileInput.files.length === 0) return alert("İsim, fiyat ve resim seçimi zorunludur!");
-            
-            btn.innerText = "Fotoğraf Sıkıştırılıyor & Kaydediliyor...";
-            try {
-                // Resmi küçültüp optimize et
-                const imageUrl = await resizeAndConvertImage(fileInput.files[0]);
-                
-                // Firestore'a kaydet
-                await addDoc(collection(db, "products"), {
-                    name, category, oldPrice, price, desc, imageUrl, createdAt: new Date()
-                });
+            if(!name || !price) return alert("Ürün adı ve geçerli fiyat zorunludur!");
+            if(!editId && fileInput.files.length === 0) return alert("Yeni ürün eklerken resim seçmelisiniz!");
 
-                msg.innerText = "Ürün başarıyla eklendi!";
+            btn.innerText = "İşleniyor...";
+            try {
+                let imageUrl = "";
+                if (fileInput.files.length > 0) {
+                    imageUrl = await resizeAndConvertImage(fileInput.files[0]);
+                }
+
+                if (editId) {
+                    // --- GÜNCELLEME İŞLEMİ ---
+                    const updateData = { name, category, oldPrice, price, desc };
+                    if (imageUrl) updateData.imageUrl = imageUrl; // Yeni resim seçildiyse değiştir
+
+                    await updateDoc(doc(db, "products", editId), updateData);
+                    msg.innerText = "Ürün başarıyla güncellendi!";
+                    resetForm();
+                } else {
+                    // --- YENİ ÜRÜN EKLEME ---
+                    await addDoc(collection(db, "products"), {
+                        name, category, oldPrice, price, desc, imageUrl, createdAt: new Date()
+                    });
+                    msg.innerText = "Ürün başarıyla eklendi!";
+                    resetForm();
+                }
+
                 setTimeout(() => msg.innerText = "", 3000);
-                
-                document.getElementById('pName').value = '';
-                document.getElementById('pOldPrice').value = '';
-                document.getElementById('pPrice').value = '';
-                document.getElementById('pDesc').value = '';
-                fileInput.value = '';
-                
                 loadAdminMenu();
             } catch (e) {
                 console.error(e);
-                alert("Ürün kaydedilirken hata oluştu!");
+                alert("İşlem sırasında hata oluştu!");
             }
             btn.innerText = "Ürünü Kaydet";
         };
 
+        // Tabloyu ve Düzenlenecek Ürünü Çekme
         async function loadAdminMenu() {
             const tbody = document.getElementById('productTable');
             tbody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
@@ -215,14 +216,54 @@
                 const item = d.data();
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><img src="${item.imageUrl}" alt="Yemek"></td>
+                    <td><img src="${item.imageUrl || ''}" alt="Yemek"></td>
                     <td>${item.name}</td>
                     <td>${item.category}</td>
                     <td>${item.price} TL</td>
-                    <td><button class="btn btn-red btn-sm" onclick="deleteProduct('${d.id}')">Sil</button></td>
+                    <td>
+                        <button class="btn btn-edit btn-sm" onclick="editProduct('${d.id}')">Düzenle</button>
+                        <button class="btn btn-red btn-sm" onclick="deleteProduct('${d.id}')">Sil</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        // Düzenleme modunu açma
+        window.editProduct = async (id) => {
+            const docRef = doc(db, "products", id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('editProductId').value = id;
+                document.getElementById('pName').value = data.name;
+                document.getElementById('pCategory').value = data.category;
+                document.getElementById('pOldPrice').value = data.oldPrice || '';
+                document.getElementById('pPrice').value = data.price;
+                document.getElementById('pDesc').value = data.desc || '';
+                
+                document.getElementById('formTitle').innerText = "Ürünü Düzenle";
+                document.getElementById('saveBtn').innerText = "Değişiklikleri Kaydet";
+                document.getElementById('cancelBtn').style.display = "inline-block";
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        // İptal Butonu
+        document.getElementById('cancelBtn').onclick = () => {
+            resetForm();
+        };
+
+        function resetForm() {
+            document.getElementById('editProductId').value = '';
+            document.getElementById('pName').value = '';
+            document.getElementById('pOldPrice').value = '';
+            document.getElementById('pPrice').value = '';
+            document.getElementById('pDesc').value = '';
+            document.getElementById('pImageFile').value = '';
+            document.getElementById('formTitle').innerText = "Yeni Ürün Ekle";
+            document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
+            document.getElementById('cancelBtn').style.display = "none";
         }
 
         window.deleteProduct = async (id) => {
