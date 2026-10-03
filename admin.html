@@ -23,6 +23,10 @@
         .form-group { display: flex; flex-direction: column; }
         .form-group.full { grid-column: span 2; }
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        
+        /* ÖN İZLEME RESİM STİLİ */
+        #imagePreview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; display: none; }
+
         table { width: 100%; background: white; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f1f2f6; }
@@ -48,7 +52,6 @@
         </div>
 
         <div class="form-card">
-            <!-- Düzenleme Modu için Gizli ID Alanı -->
             <input type="hidden" id="editProductId">
 
             <div class="form-group">
@@ -74,9 +77,11 @@
                 <textarea id="pDesc" rows="2" placeholder="İçindeki malzemeler..."></textarea>
             </div>
             <div class="form-group full">
-                <label>Yemek Fotoğrafı (Değiştirmek istemiyorsanız boş bırakın)</label>
+                <label>Yemek Fotoğrafı Seç</label>
                 <input type="file" id="pImageFile" accept="image/*">
-                <small style="color: #7f8fa6;">Yeni fotoğraf seçilmezse mevcut fotoğraf korunur.</small>
+                <!-- ÖN İZLEME KUTUSU -->
+                <img id="imagePreview" alt="Ön izleme">
+                <small style="color: #7f8fa6; margin-top: 5px;">Seçtiğiniz fotoğraf otomatik olarak optimize edilip yüklenecektir.</small>
             </div>
             <div class="form-group full" style="display: flex; align-items: center;">
                 <button id="saveBtn" class="btn">Ürünü Kaydet</button>
@@ -129,6 +134,18 @@
             }
         });
 
+        // Dosya seçildiğinde anında ön izleme yapma
+        const fileInput = document.getElementById('pImageFile');
+        const imagePreview = document.getElementById('imagePreview');
+
+        fileInput.onchange = (evt) => {
+            const [file] = fileInput.files;
+            if (file) {
+                imagePreview.src = URL.createObjectURL(file);
+                imagePreview.style.display = "block";
+            }
+        };
+
         // Resize fonksiyonu
         const resizeAndConvertImage = (file) => {
             return new Promise((resolve, reject) => {
@@ -162,7 +179,6 @@
             const btn = document.getElementById('saveBtn');
             const msg = document.getElementById('statusMsg');
             const editId = document.getElementById('editProductId').value;
-            const fileInput = document.getElementById('pImageFile');
             const name = document.getElementById('pName').value;
             const category = document.getElementById('pCategory').value;
             const oldPrice = document.getElementById('pOldPrice').value;
@@ -180,15 +196,13 @@
                 }
 
                 if (editId) {
-                    // --- GÜNCELLEME İŞLEMİ ---
                     const updateData = { name, category, oldPrice, price, desc };
-                    if (imageUrl) updateData.imageUrl = imageUrl; // Yeni resim seçildiyse değiştir
+                    if (imageUrl) updateData.imageUrl = imageUrl;
 
                     await updateDoc(doc(db, "products", editId), updateData);
                     msg.innerText = "Ürün başarıyla güncellendi!";
                     resetForm();
                 } else {
-                    // --- YENİ ÜRÜN EKLEME ---
                     await addDoc(collection(db, "products"), {
                         name, category, oldPrice, price, desc, imageUrl, createdAt: new Date()
                     });
@@ -205,7 +219,6 @@
             btn.innerText = "Ürünü Kaydet";
         };
 
-        // Tabloyu ve Düzenlenecek Ürünü Çekme
         async function loadAdminMenu() {
             const tbody = document.getElementById('productTable');
             tbody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
@@ -229,7 +242,6 @@
             });
         }
 
-        // Düzenleme modunu açma
         window.editProduct = async (id) => {
             const docRef = doc(db, "products", id);
             const docSnap = await getDoc(docRef);
@@ -242,6 +254,12 @@
                 document.getElementById('pPrice').value = data.price;
                 document.getElementById('pDesc').value = data.desc || '';
                 
+                // Düzenlenen ürünün mevcut resmini ön izlemede göster
+                if (data.imageUrl) {
+                    imagePreview.src = data.imageUrl;
+                    imagePreview.style.display = "block";
+                }
+
                 document.getElementById('formTitle').innerText = "Ürünü Düzenle";
                 document.getElementById('saveBtn').innerText = "Değişiklikleri Kaydet";
                 document.getElementById('cancelBtn').style.display = "inline-block";
@@ -249,7 +267,6 @@
             }
         };
 
-        // İptal Butonu
         document.getElementById('cancelBtn').onclick = () => {
             resetForm();
         };
@@ -260,7 +277,9 @@
             document.getElementById('pOldPrice').value = '';
             document.getElementById('pPrice').value = '';
             document.getElementById('pDesc').value = '';
-            document.getElementById('pImageFile').value = '';
+            fileInput.value = '';
+            imagePreview.style.display = "none";
+            imagePreview.src = "";
             document.getElementById('formTitle').innerText = "Yeni Ürün Ekle";
             document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
             document.getElementById('cancelBtn').style.display = "none";
