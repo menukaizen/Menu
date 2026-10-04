@@ -10,6 +10,17 @@
         :root { --primary-color: #273c75; --accent: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 90px; }
         
+        /* GİRİŞ EKRANI STİLLERİ */
+        #login-screen { position: fixed; width: 100%; height: 100%; background: var(--primary-color); display: flex; justify-content: center; align-items: center; z-index: 3000; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .login-box h2 { margin-top: 0; color: var(--primary-color); }
+        .login-box input { width: 100%; margin-top: 15px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.2s; font-family: inherit; }
+        .login-box input:focus { border-color: var(--primary-color); }
+        .login-box button { width: 100%; margin-top: 20px; padding: 15px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 1.1rem; }
+        
+        /* ANA UYGULAMA GİZLİ BAŞLAR */
+        #main-app { display: none; }
+
         #loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
         .spinner { width: 40px; height: 40px; border: 4px solid #dfe4ea; border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -17,28 +28,24 @@
         
         header { background-color: var(--primary-color); color: white; padding: 15px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
         .header-content { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .header-content h1 { margin: 0; font-size: 1.3rem; letter-spacing: 1px; flex-grow: 1; text-align: center; }
+        .header-content h1 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; flex-grow: 1; text-align: center; }
         
-        .back-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.9rem; transition: 0.2s; visibility: hidden; }
-        .back-btn:active { background: rgba(255,255,255,0.4); }
-        .spacer { width: 75px; }
+        .header-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
+        .back-btn { visibility: hidden; }
 
-        /* Görünümler Arası Geçiş */
         .view-section { display: none; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Masalar Grid Sistemi ve Durum Renkleri */
+        /* Masalar */
         .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; max-width: 800px; margin: 20px auto; padding: 0 15px; }
         .table-card { height: 110px; background: white; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; }
-        .table-card:active { transform: scale(0.95); }
-        
         .table-empty { border-color: #dcdde1; color: var(--text-main); }
         .table-order { background: var(--accent); color: white; border-color: var(--accent); }
         .table-waiter { background: var(--warning); color: white; border-color: var(--warning); }
-        .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
         
-        /* Menü Stilleri */
+        /* Menü */
         .menu-container { max-width: 800px; margin: 10px auto; padding: 0 15px; }
         .category-title { font-size: 1.3rem; font-weight: 600; padding-bottom: 8px; margin-top: 20px; margin-bottom: 15px; color: var(--text-main); border-bottom: 2px solid #ddd; }
         .menu-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
@@ -47,41 +54,30 @@
         .item-content { padding-left: 12px; flex-grow: 1; padding-right: 45px; }
         .item-title { margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600; }
         .item-price { color: var(--accent); font-weight: 600; font-size: 0.95rem; }
-        
         .add-to-cart-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: var(--success); color: white; border: none; width: 40px; height: 40px; border-radius: 10px; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 8px rgba(76, 209, 55, 0.3); transition: 0.2s; }
-        .add-to-cart-btn:active { transform: translateY(-50%) scale(0.9); }
-
+        
         .floating-cart { position: fixed; bottom: 20px; right: 20px; left: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 15px; font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: pointer; display: flex; justify-content: space-between; align-items: center; z-index: 1000; transition: 0.3s; max-width: 500px; margin: 0 auto; }
-        .cart-info { display: flex; align-items: center; gap: 10px; }
         .cart-badge { background: var(--accent); color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; }
         
         /* Modallar */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        
-        /* Sepet Modalı (Alttan açılır) */
         #cartModal { flex-direction: column; justify-content: flex-end; }
         .cart-content { background: white; width: 100%; max-height: 85vh; border-radius: 25px 25px 0 0; padding: 25px; box-sizing: border-box; display: flex; flex-direction: column; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px; margin-bottom: 15px; }
-        .cart-header h2 { margin: 0; font-size: 1.3rem; color: var(--primary-color); }
         .close-btn { background: #f1f2f6; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-main); display: flex; justify-content: center; align-items: center; }
-        
         .cart-items { overflow-y: auto; flex-grow: 1; margin-bottom: 20px; padding-right: 5px; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee; }
         .cart-item-info { display: flex; flex-direction: column; }
         .cart-item-title { font-weight: 600; font-size: 1rem; }
         .cart-item-price { color: var(--accent); font-size: 0.95rem; font-weight: 600; margin-top: 5px; }
         .remove-item { color: #e74c3c; background: none; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 5px 0 0 0; text-align: left; }
-        
         .cart-total { display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; padding-top: 15px; border-top: 2px solid #f1f2f6; }
-        .btn-order { background: var(--success); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.2rem; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(76, 209, 55, 0.3); transition: 0.2s; }
-        .btn-order:active { transform: scale(0.98); }
-
-        /* Masa Aksiyon Modalı (Ortada açılır) */
+        .btn-order { background: var(--success); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.2rem; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(76, 209, 55, 0.3); }
+        
         .action-modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 25px rgba(0,0,0,0.2); animation: scaleIn 0.2s ease; }
         @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .action-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px; margin-bottom: 15px; }
-        .action-header h3 { margin: 0; font-size: 1.2rem; color: var(--text-main); }
         .order-list-item { background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.9rem; }
         .action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         .btn-clear { background: var(--text-muted); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 1rem; }
@@ -90,69 +86,74 @@
 </head>
 <body>
 
-    <div id="loader-wrapper"><div class="spinner"></div><div style="font-weight:500;">Sistem Yükleniyor...</div></div>
-
-    <header>
-        <div class="header-content">
-            <button class="back-btn" id="backBtn">⬅ Masalar</button>
-            <h1 id="headerTitle">Masa Seçin</h1>
-            <div class="spacer"></div>
-        </div>
-    </header>
-
-    <!-- 1. GÖRÜNÜM: MASALAR -->
-    <div id="view-tables" class="view-section active">
-        <div class="table-grid" id="tableGrid"></div>
-    </div>
-
-    <!-- 2. GÖRÜNÜM: MENÜ VE SİPARİŞ EKRANI -->
-    <div id="view-menu" class="view-section">
-        <div class="menu-container" id="menuContainer"></div>
-    </div>
-
-    <!-- Garson Sepet Butonu -->
-    <div class="floating-cart" id="cartBtn" style="display: none;">
-        <div class="cart-info">
-            <div class="cart-badge" id="cartCount">0</div>
-            <span>Ürün Seçildi</span>
-        </div>
-        <span id="cartTotalPreview">0 TL</span>
-    </div>
-
-    <!-- Sepet Modalı -->
-    <div class="modal-overlay" id="cartModal" style="align-items: flex-end;">
-        <div class="cart-content">
-            <div class="cart-header">
-                <h2 id="modalTitle">Sipariş Özeti</h2>
-                <button class="close-btn" id="closeCartBtn">&times;</button>
-            </div>
-            <div class="cart-items" id="cartItemsList"></div>
-            <div class="cart-total">
-                <span>Genel Toplam:</span>
-                <span id="cartTotalPrice">0 TL</span>
-            </div>
-            <button class="btn-order" id="placeOrderBtn">Siparişi Mutfağa İlet</button>
+    <!-- GİRİŞ EKRANI -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>Garson Girişi</h2>
+            <input type="email" id="email" placeholder="E-posta Adresi">
+            <input type="password" id="password" placeholder="Şifre">
+            <button id="loginBtn">Sisteme Gir</button>
+            <p id="errorMsg" style="color:#ffcccc; font-size:13px; display:none; margin-top:10px;">Giriş başarısız! Bilgileri kontrol edin.</p>
         </div>
     </div>
 
-    <!-- Masa Aksiyon Modalı (Dolu masaya tıklanınca açılır) -->
-    <div class="modal-overlay" id="tableActionModal">
-        <div class="action-modal-content">
-            <div class="action-header">
-                <h3 id="actionModalTitle">Masa Detayı</h3>
-                <button class="close-btn" id="closeActionBtn">&times;</button>
+    <!-- ANA UYGULAMA -->
+    <div id="main-app">
+        <div id="loader-wrapper"><div class="spinner"></div><div style="font-weight:500;">Bağlanıyor...</div></div>
+
+        <header>
+            <div class="header-content">
+                <button class="header-btn back-btn" id="backBtn">⬅ Geri</button>
+                <h1 id="headerTitle">Masa Seçin</h1>
+                <button class="header-btn" id="logoutBtn" style="background: rgba(232, 65, 24, 0.8);">Çıkış</button>
             </div>
-            <div id="actionModalContent"></div>
-            <div class="action-btns">
-                <button class="btn-add" id="addMoreBtn">🛒 Masaya Yeni Sipariş Ekle</button>
-                <button class="btn-clear" id="clearTableBtn">🧹 Masayı Temizle (Hesabı Kapat)</button>
+        </header>
+
+        <!-- 1. GÖRÜNÜM: MASALAR -->
+        <div id="view-tables" class="view-section active">
+            <div class="table-grid" id="tableGrid"></div>
+        </div>
+
+        <!-- 2. GÖRÜNÜM: MENÜ -->
+        <div id="view-menu" class="view-section">
+            <div class="menu-container" id="menuContainer"></div>
+        </div>
+
+        <div class="floating-cart" id="cartBtn" style="display: none;">
+            <div class="cart-info"><div class="cart-badge" id="cartCount">0</div><span>Ürün Seçildi</span></div>
+            <span id="cartTotalPreview">0 TL</span>
+        </div>
+
+        <div class="modal-overlay" id="cartModal" style="align-items: flex-end;">
+            <div class="cart-content">
+                <div class="cart-header">
+                    <h2 id="modalTitle">Sipariş Özeti</h2>
+                    <button class="close-btn" id="closeCartBtn">&times;</button>
+                </div>
+                <div class="cart-items" id="cartItemsList"></div>
+                <div class="cart-total"><span>Genel Toplam:</span><span id="cartTotalPrice">0 TL</span></div>
+                <button class="btn-order" id="placeOrderBtn">Siparişi Mutfağa İlet</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="tableActionModal">
+            <div class="action-modal-content">
+                <div class="action-header">
+                    <h3 id="actionModalTitle">Masa Detayı</h3>
+                    <button class="close-btn" id="closeActionBtn">&times;</button>
+                </div>
+                <div id="actionModalContent"></div>
+                <div class="action-btns">
+                    <button class="btn-add" id="addMoreBtn">🛒 Yeni Sipariş Ekle</button>
+                    <button class="btn-clear" id="clearTableBtn">🧹 Masayı Temizle (Hesabı Kapat)</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        // 'updateDoc' eklendi (Masa boşaltmak için)
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -165,6 +166,7 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
         
         let productsData = []; 
@@ -173,284 +175,187 @@
         let currentTableCount = 0;
         let activeOrders = {}; 
 
-        // --- 1. MASA VE SİPARİŞ LİSTESİNİ CANLI DİNLEME ---
-        onSnapshot(doc(db, "settings", "general"), (docSnap) => {
-            if(docSnap.exists()) {
-                currentTableCount = docSnap.data().tableCount || 0;
-                renderTables();
+        // --- GİRİŞ VE ÇIKIŞ İŞLEMLERİ ---
+        document.getElementById('loginBtn').onclick = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(() => {
+                document.getElementById('errorMsg').style.display = 'block';
+            });
+        };
+
+        document.getElementById('logoutBtn').onclick = () => {
+            signOut(auth);
+        };
+
+        // KİMLİK DOĞRULAMA (SADECE GARSON)
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                // Sadece Garson UID'si veya e-postası ise içeri al
+                if (user.uid === "z2S24PrVOWV9oiBreklIqRvhw1n2" || user.email === "garson@hotmail.com") {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-app').style.display = 'block';
+                    startApp(); 
+                } else {
+                    // Admin veya başkası girmeye çalışırsa at
+                    signOut(auth);
+                    alert("Erişim Engellendi: Bu panele sadece Garsonlar girebilir!");
+                }
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
             }
         });
 
-        onSnapshot(collection(db, "orders"), (snapshot) => {
-            activeOrders = {};
-            snapshot.forEach(d => {
-                const data = d.data();
-                if(data.status !== 'completed') {
-                    if(!activeOrders[data.tableNo]) activeOrders[data.tableNo] = [];
-                    activeOrders[data.tableNo].push({ id: d.id, ...data });
+        // Uygulama sadece başarılı girişte başlar
+        function startApp() {
+            // Masaları Dinle
+            onSnapshot(doc(db, "settings", "general"), (docSnap) => {
+                if(docSnap.exists()) {
+                    currentTableCount = docSnap.data().tableCount || 0;
+                    renderTables();
                 }
             });
-            renderTables();
-        });
 
+            // Siparişleri Dinle
+            onSnapshot(collection(db, "orders"), (snapshot) => {
+                activeOrders = {};
+                snapshot.forEach(d => {
+                    const data = d.data();
+                    if(data.status !== 'completed') {
+                        if(!activeOrders[data.tableNo]) activeOrders[data.tableNo] = [];
+                        activeOrders[data.tableNo].push({ id: d.id, ...data });
+                    }
+                });
+                renderTables();
+            });
+
+            loadMenu(); // Menüyü Yükle
+        }
+
+        // --- MASA YÖNETİMİ ---
         function renderTables() {
             const grid = document.getElementById('tableGrid');
             grid.innerHTML = '';
-            
             if(currentTableCount === 0) {
-                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center; color:#7f8fa6;">Lütfen Admin Panelinden masa sayısını belirleyin.</p>';
-                return;
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center;">Masa ayarı yapılmamış.</p>'; return;
             }
-
             for(let i = 1; i <= currentTableCount; i++) {
                 const events = activeOrders[i] || [];
-                let statusClass = 'table-empty';
-                let statusText = 'Boş';
-                
+                let statusClass = 'table-empty', statusText = 'Boş';
                 const hasOrder = events.some(e => e.type === 'order');
                 const hasWaiterCall = events.some(e => e.type === 'waiter');
 
-                if(hasOrder) { 
-                    statusClass = 'table-order'; 
-                    statusText = 'Dolu'; 
-                } else if(hasWaiterCall) { 
-                    statusClass = 'table-waiter'; 
-                    statusText = 'Garson Bekliyor'; 
-                }
+                if(hasOrder) { statusClass = 'table-order'; statusText = 'Dolu'; } 
+                else if(hasWaiterCall) { statusClass = 'table-waiter'; statusText = 'Çağrı'; }
 
-                grid.innerHTML += `
-                    <div class="table-card ${statusClass}" onclick="window.handleTableClick(${i})">
-                        Masa ${i}
-                        <div class="table-status">${statusText}</div>
-                    </div>`;
+                grid.innerHTML += `<div class="table-card ${statusClass}" onclick="window.handleTableClick(${i})">Masa ${i}<div class="table-status">${statusText}</div></div>`;
             }
         }
 
-        // --- 2. MASAYA TIKLAMA MANTIĞI ---
         window.handleTableClick = (tableNo) => {
             currentTableNo = tableNo;
             const events = activeOrders[tableNo] || [];
-
-            if(events.length === 0) {
-                // Masa boşsa direkt menüyü aç
-                openMenuForTable(tableNo);
-            } else {
-                // Masa doluysa aksiyon modalını aç
-                showTableActions(tableNo, events);
-            }
+            if(events.length === 0) openMenuForTable(tableNo);
+            else showTableActions(tableNo, events);
         };
 
         function showTableActions(tableNo, events) {
-            const modal = document.getElementById('tableActionModal');
-            const content = document.getElementById('actionModalContent');
+            const modal = document.getElementById('tableActionModal'), content = document.getElementById('actionModalContent');
             document.getElementById('actionModalTitle').innerText = `Masa ${tableNo} Aktif Durum`;
-            
             let html = '';
             events.forEach(ev => {
-                if(ev.type === 'waiter') {
-                    html += `<div class="order-list-item" style="border-left-color: var(--warning);">🔔 Garson Çağrıldı!</div>`;
-                } else if(ev.type === 'order') {
+                if(ev.type === 'waiter') html += `<div class="order-list-item" style="border-left-color: var(--warning);">🔔 Garson Çağrıldı!</div>`;
+                else if(ev.type === 'order') {
                     let itemListHtml = '<ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 13px;">';
-                    if (ev.items && ev.items.length > 0) {
-                        ev.items.forEach(item => {
-                            itemListHtml += `<li>${item.name} (${item.price} TL)</li>`;
-                        });
-                    }
+                    if (ev.items) ev.items.forEach(item => itemListHtml += `<li>${item.name} (${item.price} TL)</li>`);
                     itemListHtml += '</ul>';
-                    html += `<div class="order-list-item">
-                        <strong>🛒 Sipariş:</strong> Toplam ${ev.totalPrice} TL
-                        ${itemListHtml}
-                    </div>`;
+                    html += `<div class="order-list-item"><strong>🛒 Sipariş:</strong> Toplam ${ev.totalPrice} TL${itemListHtml}</div>`;
                 }
             });
-            
-            content.innerHTML = html;
-            modal.style.display = 'flex';
+            content.innerHTML = html; modal.style.display = 'flex';
         }
 
-        document.getElementById('closeActionBtn').onclick = () => {
-            document.getElementById('tableActionModal').style.display = 'none';
-        };
-
-        // Dolu masaya yeni sipariş ekleme butonu
-        document.getElementById('addMoreBtn').onclick = () => {
-            document.getElementById('tableActionModal').style.display = 'none';
-            openMenuForTable(currentTableNo);
-        };
-
-        // Masayı Temizleme (Hesabı Kapatma) butonu
+        document.getElementById('closeActionBtn').onclick = () => document.getElementById('tableActionModal').style.display = 'none';
+        document.getElementById('addMoreBtn').onclick = () => { document.getElementById('tableActionModal').style.display = 'none'; openMenuForTable(currentTableNo); };
+        
         document.getElementById('clearTableBtn').onclick = async () => {
-            const btn = document.getElementById('clearTableBtn');
-            const events = activeOrders[currentTableNo] || [];
-            
+            const btn = document.getElementById('clearTableBtn'), events = activeOrders[currentTableNo] || [];
             btn.innerText = "Temizleniyor...";
             try {
-                // Masadaki tüm aktif işlemleri "completed" olarak işaretle
-                const updatePromises = events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' }));
-                await Promise.all(updatePromises);
+                await Promise.all(events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' })));
                 document.getElementById('tableActionModal').style.display = 'none';
-            } catch (e) {
-                alert("Hata oluştu, masa temizlenemedi.");
-            }
+            } catch (e) { alert("Hata oluştu."); }
             btn.innerText = "🧹 Masayı Temizle (Hesabı Kapat)";
         };
 
-        // --- 3. MENÜ EKRANINI AÇMA (ESKİ YAPI) ---
         function openMenuForTable(tableNo) {
-            document.getElementById('view-tables').classList.remove('active');
-            document.getElementById('view-menu').classList.add('active');
-            
+            document.getElementById('view-tables').classList.remove('active'); document.getElementById('view-menu').classList.add('active');
             document.getElementById('headerTitle').innerText = `Masa ${tableNo} Siparişi`;
-            document.getElementById('modalTitle').innerText = `Masa ${tableNo} Özeti`;
             document.getElementById('backBtn').style.visibility = 'visible';
-            
-            cart = [];
-            updateCartUI();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            cart = []; updateCartUI(); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Geri Tuşuna Basınca
         document.getElementById('backBtn').onclick = () => {
             currentTableNo = null;
-            document.getElementById('view-menu').classList.remove('active');
-            document.getElementById('view-tables').classList.add('active');
-            
+            document.getElementById('view-menu').classList.remove('active'); document.getElementById('view-tables').classList.add('active');
             document.getElementById('headerTitle').innerText = 'Masa Seçin';
             document.getElementById('backBtn').style.visibility = 'hidden';
-            
-            cart = [];
-            updateCartUI();
-            document.getElementById('cartModal').style.display = 'none';
+            cart = []; updateCartUI(); document.getElementById('cartModal').style.display = 'none';
         };
 
-        // --- 4. MENÜ YÜKLEME ---
+        // --- MENÜ VE SEPET ---
         async function loadMenu() {
             const container = document.getElementById('menuContainer');
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
-                if(querySnapshot.empty) {
-                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#7f8fa6;">Menüde ürün yok.</div>';
-                    document.getElementById('loader-wrapper').classList.add('loaded-hide');
-                    return;
-                }
-
+                if(querySnapshot.empty) { container.innerHTML = '<div style="text-align:center; padding:40px;">Menü boş.</div>'; return; }
                 const categories = {};
-                querySnapshot.forEach((doc) => {
-                    const data = { id: doc.id, ...doc.data() };
-                    productsData.push(data);
-                    if(!categories[data.category]) categories[data.category] = [];
-                    categories[data.category].push(data);
+                querySnapshot.forEach(doc => {
+                    const data = { id: doc.id, ...doc.data() }; productsData.push(data);
+                    if(!categories[data.category]) categories[data.category] = []; categories[data.category].push(data);
                 });
-
                 let htmlContent = '';
                 for (const [category, items] of Object.entries(categories)) {
                     htmlContent += `<div class="category-title">${category}</div><div class="menu-list">`;
                     items.forEach(item => {
-                        htmlContent += `
-                            <div class="menu-item">
-                                <img src="${item.imageUrl || 'https://via.placeholder.com/70'}" alt="${item.name}" class="item-img">
-                                <div class="item-content">
-                                    <h3 class="item-title">${item.name}</h3>
-                                    <div class="item-price">${item.price} TL</div>
-                                </div>
-                                <button class="add-to-cart-btn" onclick="window.addToCart('${item.id}')">+</button>
-                            </div>
-                        `;
+                        htmlContent += `<div class="menu-item"><img src="${item.imageUrl || 'https://via.placeholder.com/70'}" class="item-img"><div class="item-content"><h3 class="item-title">${item.name}</h3><div class="item-price">${item.price} TL</div></div><button class="add-to-cart-btn" onclick="window.addToCart('${item.id}')">+</button></div>`;
                     });
                     htmlContent += `</div>`;
                 }
                 container.innerHTML = htmlContent;
-            } catch (error) {
-                container.innerHTML = '<div style="text-align:center; padding:40px;">Bağlantı hatası oluştu.</div>';
-            }
+            } catch (error) { container.innerHTML = '<div style="text-align:center; padding:40px;">Bağlantı hatası.</div>'; }
             document.getElementById('loader-wrapper').classList.add('loaded-hide');
         }
 
-        // --- 5. SEPET İŞLEMLERİ ---
         window.addToCart = (productId) => {
             const product = productsData.find(p => p.id === productId);
-            if(product) {
-                cart.push(product);
-                updateCartUI();
-                const cartBtn = document.getElementById('cartBtn');
-                cartBtn.style.transform = 'scale(1.05)';
-                setTimeout(() => cartBtn.style.transform = 'scale(1)', 150);
-            }
+            if(product) { cart.push(product); updateCartUI(); const cartBtn = document.getElementById('cartBtn'); cartBtn.style.transform = 'scale(1.05)'; setTimeout(() => cartBtn.style.transform = 'scale(1)', 150); }
         };
-
-        window.removeFromCart = (index) => {
-            cart.splice(index, 1);
-            updateCartUI();
-        };
+        window.removeFromCart = (index) => { cart.splice(index, 1); updateCartUI(); };
 
         function updateCartUI() {
-            const cartBtn = document.getElementById('cartBtn'), cartCount = document.getElementById('cartCount');
-            const cartTotalPreview = document.getElementById('cartTotalPreview'), cartItemsList = document.getElementById('cartItemsList');
-            const cartTotalPrice = document.getElementById('cartTotalPrice');
-
-            if(cart.length > 0) cartBtn.style.display = 'flex';
-            else { cartBtn.style.display = 'none'; document.getElementById('cartModal').style.display = 'none'; }
-
+            const cartBtn = document.getElementById('cartBtn'), cartCount = document.getElementById('cartCount'), cartTotalPreview = document.getElementById('cartTotalPreview'), cartItemsList = document.getElementById('cartItemsList'), cartTotalPrice = document.getElementById('cartTotalPrice');
+            if(cart.length > 0) cartBtn.style.display = 'flex'; else { cartBtn.style.display = 'none'; document.getElementById('cartModal').style.display = 'none'; }
             let total = 0, listHtml = '';
-            cart.forEach((item, index) => {
-                total += Number(item.price);
-                listHtml += `
-                    <div class="cart-item">
-                        <div class="cart-item-info">
-                            <span class="cart-item-title">${item.name}</span>
-                            <button class="remove-item" onclick="window.removeFromCart(${index})">Ürünü Çıkar</button>
-                        </div>
-                        <span class="cart-item-price">${item.price} TL</span>
-                    </div>`;
-            });
-
-            cartCount.innerText = cart.length; cartTotalPreview.innerText = `${total} TL`;
-            cartTotalPrice.innerText = `${total} TL`; cartItemsList.innerHTML = listHtml;
+            cart.forEach((item, index) => { total += Number(item.price); listHtml += `<div class="cart-item"><div class="cart-item-info"><span class="cart-item-title">${item.name}</span><button class="remove-item" onclick="window.removeFromCart(${index})">Çıkar</button></div><span class="cart-item-price">${item.price} TL</span></div>`; });
+            cartCount.innerText = cart.length; cartTotalPreview.innerText = `${total} TL`; cartTotalPrice.innerText = `${total} TL`; cartItemsList.innerHTML = listHtml;
         }
 
-        document.getElementById('cartBtn').onclick = () => {
-            document.getElementById('cartModal').style.display = 'flex';
-        };
-        
-        document.getElementById('closeCartBtn').onclick = () => {
-            document.getElementById('cartModal').style.display = 'none';
-        };
+        document.getElementById('cartBtn').onclick = () => document.getElementById('cartModal').style.display = 'flex';
+        document.getElementById('closeCartBtn').onclick = () => document.getElementById('cartModal').style.display = 'none';
 
-        // --- 6. SİPARİŞİ ONAYLAMA ---
         document.getElementById('placeOrderBtn').onclick = async () => {
             if(!currentTableNo || cart.length === 0) return;
-
-            const btn = document.getElementById('placeOrderBtn');
-            btn.innerText = "İletiliyor...";
-            btn.disabled = true;
-
-            const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-            const orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price }));
-
+            const btn = document.getElementById('placeOrderBtn'); btn.innerText = "İletiliyor..."; btn.disabled = true;
+            const total = cart.reduce((sum, item) => sum + Number(item.price), 0), orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price }));
             try {
-                await addDoc(collection(db, "orders"), {
-                    type: "order",
-                    tableNo: Number(currentTableNo),
-                    items: orderItems,
-                    totalPrice: total,
-                    status: "pending",
-                    createdAt: new Date()
-                });
-                
-                alert(`Masa ${currentTableNo} siparişi başarıyla mutfağa iletildi!`);
-                
-                document.getElementById('cartModal').style.display = 'none';
-                document.getElementById('backBtn').click(); 
-
-            } catch (error) {
-                alert("Bağlantı hatası: Sipariş iletilemedi.");
-            }
-
-            btn.innerText = "Siparişi Mutfağa İlet";
-            btn.disabled = false;
+                await addDoc(collection(db, "orders"), { type: "order", tableNo: Number(currentTableNo), items: orderItems, totalPrice: total, status: "pending", createdAt: new Date() });
+                alert(`Masa ${currentTableNo} siparişi iletildi!`);
+                document.getElementById('cartModal').style.display = 'none'; document.getElementById('backBtn').click(); 
+            } catch (error) { alert("Sipariş iletilemedi."); }
+            btn.innerText = "Siparişi Mutfağa İlet"; btn.disabled = false;
         };
-
-        loadMenu();
     </script>
 </body>
 </html>
