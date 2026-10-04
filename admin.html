@@ -105,7 +105,7 @@
             <h3 id="detailTableTitle">Masa Detayı</h3>
             <div id="tableDetailContent" style="margin: 15px 0; min-height: 80px;"></div>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button id="completeOrdersBtn" class="btn btn-success" style="display:none;">Tümünü Tamamla</button>
+                <button id="completeOrdersBtn" class="btn btn-success" style="display:none;">Hesap Al / Masayı Kapat</button>
                 <button id="closeDetailModalBtn" class="btn btn-cancel" style="display:inline-block;">Kapat</button>
             </div>
         </div>
@@ -344,6 +344,14 @@
                                 <td>${timeStr}</td>
                                 <td><button class="btn btn-success" onclick="window.updateOrderStatus('${id}', 'completed')">Kapat / İlgilen</button></td>
                             </tr>`;
+                        } else if(data.type === 'payment_request') {
+                            liveListHtml += `<tr>
+                                <td><strong>Masa ${data.tableNo}</strong></td>
+                                <td><span style="background:var(--info); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">💳 Hesap İstendi</span></td>
+                                <td>Masa hesap ödemek istiyor.</td>
+                                <td>${timeStr}</td>
+                                <td><button class="btn btn-success" onclick="window.closeTablePayments(${data.tableNo})">Hesap Al / Kapat</button></td>
+                            </tr>`;
                         } else if(data.type === 'order') {
                             let itemsText = '<ul style="margin:0; padding-left:15px;">';
                             if(data.items) {
@@ -364,13 +372,12 @@
                                 : '<span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔥 Hazırlanıyor</span>';
 
                             let actionButtons = `
-                                <button class="btn btn-success" style="margin-bottom:5px;" onclick="window.completeAndCountOrder('${id}')">Tümünü Bitir / Servis Et</button><br>
                                 <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>
                             `;
 
                             liveListHtml += `<tr>
                                 <td><strong>Masa ${data.tableNo}</strong></td>
-                                <td>${statusBadge}</td>
+                                ><td>${statusBadge}</td>
                                 <td>${itemsText}</td>
                                 <td><b>${data.totalPrice} TL</b><br><small>${timeStr}</small></td>
                                 <td>${actionButtons}</td>
@@ -403,42 +410,39 @@
             }
         };
 
-        window.completeAndCountOrder = async (orderId) => {
-            try {
-                const orderRef = doc(db, "orders", orderId);
-                const orderSnap = await getDoc(orderRef);
-                
-                if(orderSnap.exists()) {
-                    const orderData = orderSnap.data();
+        // Hesap Alındığında / Masa Kapatıldığında Ürünleri Otomatik Aylık İstatistiğe Ekleme
+        window.closeTablePayments = async (tableNo) => {
+            if(confirm(`Masa ${tableNo} hesabı kapatılıp istatistiklere işlensin mi?`)) {
+                try {
+                    const events = activeOrders[tableNo] || [];
                     const monthsNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
                     const currentMonth = monthsNames[new Date().getMonth()];
 
-                    if(orderData.items) {
-                        for(const item of orderData.items) {
-                            const statDocId = `${currentMonth}_${item.name}`;
-                            const statRef = doc(db, "monthly_stats", statDocId);
-                            const statSnap = await getDoc(statRef);
+                    for(const ev of events) {
+                        if(ev.type === 'order' && ev.items) {
+                            for(const item of ev.items) {
+                                const statDocId = `${currentMonth}_${item.name}`;
+                                const statRef = doc(db, "monthly_stats", statDocId);
+                                const statSnap = await getDoc(statRef);
 
-                            let existingQty = 0;
-                            if(statSnap.exists()) {
-                                existingQty = statSnap.data().quantity || 0;
+                                let existingQty = 0;
+                                if(statSnap.exists()) {
+                                    existingQty = statSnap.data().quantity || 0;
+                                }
+
+                                await setDoc(statRef, {
+                                    month: currentMonth,
+                                    productName: item.name,
+                                    quantity: existingQty + 1,
+                                    updatedAt: new Date()
+                                });
                             }
-
-                            await setDoc(statRef, {
-                                month: currentMonth,
-                                productName: item.name,
-                                quantity: existingQty + 1,
-                                updatedAt: new Date()
-                            });
                         }
+                        await updateDoc(doc(db, "orders", ev.id), { status: 'completed' });
                     }
-
-                    // Siparişi tamamlandı yapmak yerine servis edildi / hesap aşamasına taşıyoruz veya direkt bitiriyoruz.
-                    // İstediğin akışta: hepsi hazır olduktan sonra "hesap al" tuşuna basılacak.
-                    await updateDoc(orderRef, { served: true });
+                } catch(e) {
+                    alert("Hesap kapatılırken hata oluştu.");
                 }
-            } catch(e) {
-                alert("Hata oluştu.");
             }
         };
 
@@ -455,13 +459,14 @@
                 let tableTotalPrice = 0;
                 
                 const hasWaiterCall = events.some(e => e.type === 'waiter');
-                const orderEvents = events.filter(e => e.type === 'order' && !e.served);
+                const paymentRequested = events.some(e => e.type === 'payment_request');
+                const orderEvents = events.filter(e => e.type === 'order');
                 
                 orderEvents.forEach(ev => { tableTotalPrice += Number(ev.totalPrice || 0); });
 
                 let hasOrder = orderEvents.length > 0;
                 let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true));
-                let paymentRequested = events.some(e => e.type === 'payment_request');
+                let someItemReady = hasOrder && orderEvents.some(ev => ev.items && ev.items.some(item => item.ready === true));
 
                 if(paymentRequested) {
                     statusClass = 'table-payment';
@@ -469,6 +474,9 @@
                 } else if(allItemsReady) {
                     statusClass = 'table-ready'; 
                     statusText = '✅ Tümü Hazır'; 
+                } else if(someItemReady) {
+                    statusClass = 'table-ready'; 
+                    statusText = '✅ Hazır Ürün var';
                 } else if(hasOrder) { 
                     statusClass = 'table-order'; 
                     statusText = '🔥 Hazırlanıyor'; 
@@ -593,11 +601,8 @@
                 content.innerHTML = html + `<hr><h4 style="margin:10px 0;">Toplam Hesap: ${totalTablePrice} TL</h4>`;
                 
                 document.getElementById('completeOrdersBtn').style.display = 'inline-block';
-                document.getElementById('completeOrdersBtn').innerText = "Hesap Al / Masayı Kapat";
-                document.getElementById('completeOrdersBtn').onclick = async () => {
-                    for(const ev of events) {
-                        await updateDoc(doc(db, "orders", ev.id), { status: 'completed' });
-                    }
+                document.getElementById('completeOrdersBtn').onclick = () => {
+                    window.closeTablePayments(tableNo);
                     modal.style.display = 'none';
                 };
             }
@@ -705,7 +710,7 @@
             fileInput.value = ''; imagePreview.style.display = 'none'; imagePreview.src = '';
             document.getElementById('formTitle').innerText = "Yeni Ürün Ekle";
             document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
-            document.getElementById('cancelBtn').style.display = "none";
+            document.getElementById('cancelBtn').style.display = 'none';
         }
 
         window.deleteProduct = async (id) => {
