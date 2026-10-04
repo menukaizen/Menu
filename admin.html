@@ -104,8 +104,9 @@
         <div class="modal-content">
             <h3 id="detailTableTitle">Masa Detayı</h3>
             <div id="tableDetailContent" style="margin: 15px 0; min-height: 80px;"></div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button id="completeOrdersBtn" class="btn btn-success" style="display:none;">Hesap Al / Masayı Kapat</button>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                <button id="modalReadyAllBtn" class="btn btn-info" style="display:none;">✅ Tümünü Hazırla</button>
+                <button id="completeOrdersBtn" class="btn btn-success" style="display:none;">💳 Hesap Ödendi / Kapat</button>
                 <button id="closeDetailModalBtn" class="btn btn-cancel" style="display:inline-block;">Kapat</button>
             </div>
         </div>
@@ -372,6 +373,7 @@
                                 : '<span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔥 Hazırlanıyor</span>';
 
                             let actionButtons = `
+                                <button class="btn btn-info" style="margin-bottom:5px;" onclick="window.markAllItemsReady('${id}')">✅ Tümünü Hazırla</button><br>
                                 <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>
                             `;
 
@@ -391,12 +393,12 @@
                 liveBody.innerHTML = liveListHtml || '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Aktif sipariş veya çağrı bulunmuyor.</td></tr>';
             });
 
-            // Aylık istatistik verilerini doğrudan dinle
             onSnapshot(collection(db, "monthly_stats"), (statSnap) => {
                 renderBarCharts(statSnap);
             });
         }
 
+        // Tek bir ürünün hazır durumunu değiştirme
         window.toggleItemReady = async (orderId, itemIndex) => {
             try {
                 const orderRef = doc(db, "orders", orderId);
@@ -408,6 +410,21 @@
                 }
             } catch(e) {
                 alert("Güncellenirken hata oluştu.");
+            }
+        };
+
+        // Toplu olarak o siparişteki tüm ürünleri hazır işaretleme (Tek tuşla onay)
+        window.markAllItemsReady = async (orderId) => {
+            try {
+                const orderRef = doc(db, "orders", orderId);
+                const orderSnap = await getDoc(orderRef);
+                if(orderSnap.exists()) {
+                    let items = orderSnap.data().items || [];
+                    items.forEach(item => { item.ready = true; });
+                    await updateDoc(orderRef, { items: items });
+                }
+            } catch(e) {
+                alert("Hata oluştu.");
             }
         };
 
@@ -441,6 +458,7 @@
                         }
                         await updateDoc(doc(db, "orders", ev.id), { status: 'completed' });
                     }
+                    alert(`Masa ${tableNo} hesabı kapatıldı!`);
                 } catch(e) {
                     alert("Hesap kapatılırken hata oluştu.");
                 }
@@ -588,19 +606,38 @@
             if(events.length === 0) {
                 content.innerHTML = '<p style="color:var(--muted); text-align:center;">Aktif işlem yok.</p>';
                 document.getElementById('completeOrdersBtn').style.display = 'none';
+                document.getElementById('modalReadyAllBtn').style.display = 'none';
             } else {
                 let html = '';
                 let totalTablePrice = 0;
+                let hasUnreadyItems = false;
+                
                 events.forEach(ev => {
                     if(ev.type === 'waiter') html += `<div style="margin-bottom:8px;">🔔 Garson Çağrıldı</div>`;
                     else if(ev.type === 'payment_request') html += `<div style="margin-bottom:8px; color:var(--info); font-weight:bold;">💳 Müşteri Hesap İstedi!</div>`;
                     else if(ev.type === 'order') {
                         totalTablePrice += Number(ev.totalPrice || 0);
-                        html += `<div>🛒 Sipariş Toplam: ${ev.totalPrice} TL</div>`;
+                        let itemsSummary = ev.items ? ev.items.map(i => `${i.name} (${i.ready ? '✅' : '🔥'})`).join(', ') : '';
+                        html += `<div>🛒 Sipariş: ${itemsSummary} - <b>${ev.totalPrice} TL</b></div>`;
+                        if(ev.items && ev.items.some(i => !i.ready)) hasUnreadyItems = true;
                     }
                 });
                 content.innerHTML = html + `<hr><h4 style="margin:10px 0;">Toplam Hesap: ${totalTablePrice} TL</h4>`;
                 
+                // Toplu Hazırla Butonunu Yönet
+                const readyAllBtn = document.getElementById('modalReadyAllBtn');
+                if(hasUnreadyItems) {
+                    readyAllBtn.style.display = 'inline-block';
+                    readyAllBtn.onclick = async () => {
+                        for(const ev of events) {
+                            if(ev.type === 'order') await window.markAllItemsReady(ev.id);
+                        }
+                        modal.style.display = 'none';
+                    };
+                } else {
+                    readyAllBtn.style.display = 'none';
+                }
+
                 document.getElementById('completeOrdersBtn').style.display = 'inline-block';
                 document.getElementById('completeOrdersBtn').onclick = () => {
                     window.closeTablePayments(tableNo);
