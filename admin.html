@@ -213,18 +213,20 @@
             btn.onclick = () => signOut(auth);
         });
 
-        // KİMLİK DOĞRULAMA (SADECE ADMİN)
+        // KİMLİK DOĞRULAMA (HATA AYIKLAMA SÜRÜMÜ)
         onAuthStateChanged(auth, user => {
             if (user) {
-                // Sadece Admin UID'si veya e-postası ise içeri al
+                // Firebase'in gördüğü bilgileri ekrana yazdırıyoruz
+                alert("Giriş Yapan E-posta: " + user.email + "\nGiriş Yapan UID: " + user.uid);
+                
+                // UID veya E-posta eşleşmesi
                 if (user.uid === "n9SfOjJRdjTbSCM5mE1fLX9rvml2" || user.email === "deneme@gmail.com") {
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-app').style.display = 'block';
                     loadAdminMenu();
                 } else {
-                    // Garson veya başkası girmeye çalışırsa at
                     signOut(auth);
-                    alert("Erişim Engellendi: Bu panele sadece Yöneticiler girebilir!");
+                    alert("Erişim Engellendi! Girdiğiniz bilgiler yönetici listesinde yok.");
                 }
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
@@ -251,7 +253,6 @@
         let currentTableCount = 0;
         let activeOrders = {}; 
 
-        // Masa Sayısını Kaydetme
         document.getElementById('saveTableCountBtn').onclick = async () => {
             const count = parseInt(document.getElementById('tableCountInput').value);
             if(count > 0) {
@@ -262,7 +263,6 @@
             }
         };
 
-        // Ayarları ve Masa Sayısını Dinleme
         onSnapshot(doc(db, "settings", "general"), (docSnap) => {
             if(docSnap.exists()) {
                 currentTableCount = docSnap.data().tableCount || 0;
@@ -271,7 +271,6 @@
             }
         });
 
-        // Siparişleri ve Garson Çağrılarını Dinleme
         onSnapshot(collection(db, "orders"), (snapshot) => {
             activeOrders = {};
             snapshot.forEach(d => {
@@ -284,7 +283,6 @@
             renderTables();
         });
 
-        // Masaları Ekrana Çizme
         function renderTables() {
             const grid = document.getElementById('tableGrid');
             grid.innerHTML = '';
@@ -314,7 +312,6 @@
             }
         }
 
-        // Masaya Tıklanınca Detayları Gösterme
         window.openTableDetail = (tableNo) => {
             const modal = document.getElementById('tableDetailModal');
             const content = document.getElementById('tableDetailContent');
@@ -332,7 +329,6 @@
                         html += `<div class="order-list-item" style="border-left: 4px solid var(--edit);">🔔 Garson Çağrıldı! (Saat: ${new Date(ev.createdAt?.toDate()).toLocaleTimeString()})</div>`;
                     } else if(ev.type === 'order') {
                         
-                        // SİPARİŞ EDİLEN ÜRÜNLERİ DÖNGÜYE SOKUP LİSTELEME
                         let itemListHtml = '<ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 14px; color: #2f3640;">';
                         if (ev.items && ev.items.length > 0) {
                             ev.items.forEach(item => {
@@ -359,7 +355,6 @@
             document.getElementById('tableDetailModal').style.display = 'none';
         };
 
-        // Masadaki Siparişleri / Çağrıları Tamamlandı Olarak İşaretleme
         async function completeTableOrders(events) {
             document.getElementById('completeOrdersBtn').innerText = "İşleniyor...";
             try {
