@@ -137,7 +137,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, query, where, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, getDoc, query, where, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
@@ -291,16 +291,15 @@
                     const data = docSnap.data();
                     const orderId = docSnap.id;
 
-                    if(data.status === 'pending' && data.type === 'order') {
+                    if(data.status === 'pending' && data.type === 'order' && data.items) {
                         let orderTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : now;
                         let diffMs = now - orderTime;
                         let canCancel = diffMs < 60000; // İlk 1 dakikada iptal edilebilir
 
-                        data.items.forEach(item => {
+                        data.items.forEach((item, itemIndex) => {
                             total += Number(item.price);
                             itemCount++;
 
-                            // Ürünün kendi ready değerine göre müşteri ekranında durum yazısı
                             let itemStatusText = item.ready === true 
                                 ? '<span style="font-size:0.8rem; font-weight:600; color:var(--success);">✅ Hazır / Servis Bekliyor!</span>' 
                                 : '<span style="font-size:0.75rem; color:var(--info);">🔥 Hazırlanıyor...</span>';
@@ -310,7 +309,7 @@
                                     <div class="cart-item-info">
                                         <span class="cart-item-title">${item.name}</span>
                                         ${itemStatusText}
-                                        ${canCancel ? `<button class="btn-cancel-order" onclick="window.cancelOrder('${orderId}')">Siparişi İptal Et</button>` : ''}
+                                        ${canCancel ? `<button class="btn-cancel-order" onclick="window.cancelSingleItem('${orderId}',${itemIndex})">Bu Ürünü İptal Et</button>` : ''}
                                     </div>
                                     <span class="cart-item-price">${item.price} TL</span>
                                 </div>
@@ -325,11 +324,26 @@
             });
         }
 
-        window.cancelOrder = async (orderId) => {
-            if(confirm("Siparişinizi iptal etmek istediğinize emin misiniz?")) {
+        // Sadece seçilen ürünü iptal etme (Eğer son ürünse siparişi tamamen silme)
+        window.cancelSingleItem = async (orderId, itemIndex) => {
+            if(confirm("Bu ürünü iptal etmek istediğinize emin misiniz?")) {
                 try {
-                    await deleteDoc(doc(db, "orders", orderId));
-                    alert("Siparişiniz iptal edildi.");
+                    const orderRef = doc(db, "orders", orderId);
+                    const orderSnap = await getDoc(orderRef);
+                    if(orderSnap.exists()) {
+                        let items = orderSnap.data().items || [];
+                        items.splice(itemIndex, 1); // İlgili ürünü diziden çıkar
+
+                        if(items.length === 0) {
+                            // Eğer siparişte hiç ürün kalmadıysa belgi tamamen sil
+                            await deleteDoc(orderRef);
+                        } else {
+                            // Kalan ürünlerle güncelle ve toplam fiyatı yeniden hesapla
+                            let newTotal = items.reduce((sum, i) => sum + Number(i.price), 0);
+                            await updateDoc(orderRef, { items: items, totalPrice: newTotal });
+                        }
+                        alert("Ürün iptal edildi.");
+                    }
                 } catch(e) {
                     alert("İptal edilirken bir hata oluştu.");
                 }
@@ -383,7 +397,6 @@
                 btn.disabled = true;
 
                 const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-                // Her ürünün başlangıçta ready: false olarak kaydedilmesini sağlıyoruz
                 const orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price, ready: false }));
 
                 try {
@@ -396,7 +409,7 @@
                         createdAt: new Date()
                     });
                     
-                    alert("Siparişiniz mutfağa iletildi! İlk 1 dakika içinde 'Siparişlerim' bölümünden iptal edebilirsiniz.");
+                    alert("Siparişiniz mutfağa iletildi! İlk 1 dakika içinde 'Siparişlerim' bölümünden istediğiniz ürünü iptal edebilirsiniz.");
                     cart = [];
                     updateCartUI();
                     document.getElementById('cartModal').style.display = 'none';
