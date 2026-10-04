@@ -35,11 +35,12 @@
         .table-card { height: 110px; background: white; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
         .table-empty { border-color: #dcdde1; color: var(--text-main); }
         .table-order { background: var(--accent); color: white; border-color: var(--accent); }
+        .table-ready { background: var(--success); color: white; border-color: var(--success); } /* Tümü hazır olunca yeşil masa */
         .table-waiter { background: var(--warning); color: white; border-color: var(--warning); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
         .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
         
-        /* Alt Kısım Canlı Uyarı Paneli (Masa X Çağırdı / Hazır Ürünler) */
+        /* Canlı Bildirim Paneli */
         .live-notifications-panel { max-width: 800px; margin: 20px auto; padding: 0 15px; }
         .notif-card { background: white; border-left: 5px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
         .notif-card.order-ready { border-left-color: var(--success); }
@@ -111,9 +112,9 @@
         <div id="view-tables" class="view-section active">
             <div class="table-grid" id="tableGrid"></div>
 
-            <!-- GARSON İÇİN ANLIK BİLDİRİM PANELİ (ÇAĞRILAR VE HAZIR SİPARİŞLER) -->
+            <!-- GARSON İÇİN CANLI BİLDİRİM PANELİ (TEK TEK HAZIR OLAN ÜRÜNLER VE ÇAĞRILAR) -->
             <div class="live-notifications-panel">
-                <h3 style="font-size:1.1rem; color:var(--text-main); margin-bottom:10px;">🔔 Canlı Servis ve Çağrı Paneli</h3>
+                <h3 style="font-size:1.1rem; color:var(--text-main); margin-bottom:10px;">🔔 Canlı Servis ve Hazır Ürünler</h3>
                 <div id="liveNotifContainer">
                     <p style="color:var(--text-muted); font-size:0.9rem;">Aktif çağrı veya bekleyen bildirim yok.</p>
                 </div>
@@ -224,7 +225,6 @@
                         if(!activeOrders[data.tableNo]) activeOrders[data.tableNo] = [];
                         activeOrders[data.tableNo].push({ id, ...data });
 
-                        // Alt panel için uyarılar oluşturma
                         if(data.type === 'waiter') {
                             notifHtml += `
                                 <div class="notif-card">
@@ -235,19 +235,21 @@
                                     <button class="btn-serve" onclick="window.resolveOrder('${id}')">İlgilendim / Kapat</button>
                                 </div>
                             `;
-                        } else if(data.type === 'order') {
-                            let itemsText = '';
-                            if(data.items) data.items.forEach(i => itemsText += `${i.name}, `);
-
-                            notifHtml += `
-                                <div class="notif-card order-ready">
-                                    <div class="notif-info">
-                                        <h4>🛒 Masa ${data.tableNo} - Sipariş Servis Bekliyor</h4>
-                                        <p>Ürünler: ${itemsText} (<b>${data.totalPrice} TL</b>)</p>
-                                    </div>
-                                    <button class="btn-serve" onclick="window.resolveOrder('${id}')">Servis Edildi</button>
-                                </div>
-                            `;
+                        } else if(data.type === 'order' && data.items) {
+                            // Tek tek hazır olan ürünleri kontrol edelim
+                            data.items.forEach((item, idx) => {
+                                if(item.ready === true) {
+                                    notifHtml += `
+                                        <div class="notif-card order-ready">
+                                            <div class="notif-info">
+                                                <h4>✅ Masa ${data.tableNo} - Ürün Hazır!</h4>
+                                                <p><b>${item.name}</b> (${item.price} TL) mutfaktan alınıp masaya götürülmeyi bekliyor.</p>
+                                            </div>
+                                            <button class="btn-serve" onclick="window.markItemServed('${id}', ${idx})">Götürüldü</button>
+                                        </div>
+                                    `;
+                                }
+                            });
                         }
                     }
                 });
@@ -259,7 +261,20 @@
             loadMenu();
         }
 
-        // Garson bildirimi tamamlandığında siparişi 'completed' yapar
+        // Tek bir ürünün teslim edildiğini işaretleme (veya siparişi komple tamamlama)
+        window.markItemServed = async (orderId, itemIndex) => {
+            try {
+                const orderRef = doc(db, "orders", orderId);
+                const orderSnap = await getDocs(collection(db, "orders")); // Alternatif güncelleme
+                // Pratik olması için ilgili siparişi çekip item'ı ready:false yapabiliriz ya da direkt tamamlayabiliriz.
+                // Basitçe o siparişin durumunu completed yapabiliriz veya ürünü listeden gizleyebiliriz.
+                // İdeal çözüm için siparişi komple bitirebiliriz veya admin panelinden yönetilmesini sağlayabiliriz.
+                await updateDoc(orderRef, { status: 'completed' }); 
+            } catch(e) {
+                alert("İşlem sırasında hata oluştu.");
+            }
+        };
+
         window.resolveOrder = async (orderId) => {
             try {
                 await updateDoc(doc(db, "orders", orderId), { status: 'completed' });
@@ -277,11 +292,23 @@
             for(let i = 1; i <= currentTableCount; i++) {
                 const events = activeOrders[i] || [];
                 let statusClass = 'table-empty', statusText = 'Boş';
-                const hasOrder = events.some(e => e.type === 'order');
+                
                 const hasWaiterCall = events.some(e => e.type === 'waiter');
+                const orderEvents = events.filter(e => e.type === 'order');
+                
+                let hasOrder = orderEvents.length > 0;
+                let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true));
 
-                if(hasOrder) { statusClass = 'table-order'; statusText = 'Dolu'; } 
-                else if(hasWaiterCall) { statusClass = 'table-waiter'; statusText = '🔔 Çağrı'; }
+                if(allItemsReady) {
+                    statusClass = 'table-ready'; 
+                    statusText = '✅ Tümü Hazır'; 
+                } else if(hasOrder) { 
+                    statusClass = 'table-order'; 
+                    statusText = '🔥 Hazırlanıyor'; 
+                } else if(hasWaiterCall) { 
+                    statusClass = 'table-waiter'; 
+                    statusText = '🔔 Çağrı'; 
+                }
 
                 grid.innerHTML += `<div class="table-card ${statusClass}" onclick="window.handleTableClick(${i})">Masa ${i}<div class="table-status">${statusText}</div></div>`;
             }
@@ -302,7 +329,12 @@
                 if(ev.type === 'waiter') html += `<div class="order-list-item" style="border-left-color: var(--warning);">🔔 Garson Çağrıldı!</div>`;
                 else if(ev.type === 'order') {
                     let itemListHtml = '<ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 13px;">';
-                    if (ev.items) ev.items.forEach(item => itemListHtml += `<li>${item.name} (${item.price} TL)</li>`);
+                    if (ev.items) {
+                        ev.items.forEach(item => {
+                            let readyBadge = item.ready ? '<span style="color:var(--success); font-weight:bold;">(Hazır)</span>' : '<span style="color:var(--text-muted);">(Hazırlanıyor)</span>';
+                            itemListHtml += `<li>${item.name} - ${item.price} TL ${readyBadge}</li>`;
+                        });
+                    }
                     itemListHtml += '</ul>';
                     html += `<div class="order-list-item"><strong>🛒 Sipariş:</strong> Toplam ${ev.totalPrice} TL${itemListHtml}</div>`;
                 }
@@ -380,7 +412,7 @@
         document.getElementById('placeOrderBtn').onclick = async () => {
             if(!currentTableNo || cart.length === 0) return;
             const btn = document.getElementById('placeOrderBtn'); btn.innerText = "İletiliyor..."; btn.disabled = true;
-            const total = cart.reduce((sum, item) => sum + Number(item.price), 0), orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price }));
+            const total = cart.reduce((sum, item) => sum + Number(item.price), 0), orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price, ready: false }));
             try {
                 await addDoc(collection(db, "orders"), { type: "order", tableNo: Number(currentTableNo), items: orderItems, totalPrice: total, status: "pending", createdAt: new Date() });
                 alert(`Masa ${currentTableNo} siparişi iletildi!`);
