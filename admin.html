@@ -50,14 +50,16 @@
         th { background: #f1f2f6; }
         td img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
 
-        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; margin-bottom: 30px; }
-        .table-card { height: 110px; background: white; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; }
+        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-top: 15px; margin-bottom: 30px; }
+        .table-card { height: 120px; background: white; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; text-align: center; }
         .table-card:hover { transform: translateY(-3px); }
         .table-empty { border-color: #dcdde1; color: var(--muted); }
         .table-waiter { background: var(--edit); color: white; border-color: var(--edit); }
         .table-order { background: var(--primary); color: white; border-color: var(--primary); }
-        .table-status { font-size: 0.75rem; font-weight: 400; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 3px 8px; border-radius: 20px; }
-        
+        .table-payment { background: var(--info); color: white; border-color: var(--info); }
+        .table-status { font-size: 0.75rem; font-weight: 400; margin-top: 4px; background: rgba(0,0,0,0.15); padding: 2px 8px; border-radius: 20px; }
+        .table-price-tag { font-size: 0.8rem; font-weight: 600; margin-top: 4px; color: #fff; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 6px; }
+
         .section-title { font-size: 1.2rem; font-weight: 600; margin-top: 30px; margin-bottom: 15px; color: var(--dark); border-bottom: 2px solid #ddd; padding-bottom: 5px; }
         .stats-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-top: 20px; }
 
@@ -191,7 +193,7 @@
                     <tr>
                         <th>Masa No</th>
                         <th>İşlem / Durum</th>
-                        <th>Ürünler (Tek Tek Onaylayabilirsiniz)</th>
+                        <th>Ürünler</th>
                         <th>Tutar / Saat</th>
                         <th>Mutfak İşlemleri</th>
                     </tr>
@@ -356,11 +358,10 @@
                             }
                             itemsText += '</ul>';
 
-                            // Tüm ürünler hazır mı kontrolü
                             let allReady = data.items && data.items.length > 0 && data.items.every(i => i.ready === true);
                             let statusBadge = allReady 
-                                ? '<span style="background:var(--success); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">✅ Tümü Hazır (Servis Bekliyor)</span>' 
-                                : '<span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔥 Parçalı Hazırlanıyor</span>';
+                                ? '<span style="background:var(--success); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">✅ Tümü Hazır</span>' 
+                                : '<span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔥 Hazırlanıyor</span>';
 
                             let actionButtons = `
                                 <button class="btn btn-success" style="margin-bottom:5px;" onclick="window.completeAndCountOrder('${id}')">Tümünü Bitir / Servis Et</button><br>
@@ -388,14 +389,13 @@
             });
         }
 
-        // Tek bir ürünün hazır durumunu değiştirme fonksiyonu
         window.toggleItemReady = async (orderId, itemIndex) => {
             try {
                 const orderRef = doc(db, "orders", orderId);
                 const orderSnap = await getDoc(orderRef);
                 if(orderSnap.exists()) {
                     let items = orderSnap.data().items || [];
-                    items[itemIndex].ready = !items[itemIndex].ready; // Durumu tersine çevir
+                    items[itemIndex].ready = !items[itemIndex].ready;
                     await updateDoc(orderRef, { items: items });
                 }
             } catch(e) {
@@ -433,10 +433,12 @@
                         }
                     }
 
-                    await updateDoc(orderRef, { status: 'completed' });
+                    // Siparişi tamamlandı yapmak yerine servis edildi / hesap aşamasına taşıyoruz veya direkt bitiriyoruz.
+                    // İstediğin akışta: hepsi hazır olduktan sonra "hesap al" tuşuna basılacak.
+                    await updateDoc(orderRef, { served: true });
                 }
             } catch(e) {
-                alert("Sipariş kapatılırken hata oluştu.");
+                alert("Hata oluştu.");
             }
         };
 
@@ -450,13 +452,40 @@
             for(let i = 1; i <= currentTableCount; i++) {
                 const events = activeOrders[i] || [];
                 let statusClass = 'table-empty', statusText = 'Boş';
-                const hasOrder = events.some(e => e.type === 'order');
+                let tableTotalPrice = 0;
+                
                 const hasWaiterCall = events.some(e => e.type === 'waiter');
+                const orderEvents = events.filter(e => e.type === 'order' && !e.served);
+                
+                orderEvents.forEach(ev => { tableTotalPrice += Number(ev.totalPrice || 0); });
 
-                if(hasOrder) { statusClass = 'table-order'; statusText = 'Sipariş Var'; } 
-                else if(hasWaiterCall) { statusClass = 'table-waiter'; statusText = 'Garson Bekliyor'; }
+                let hasOrder = orderEvents.length > 0;
+                let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true));
+                let paymentRequested = events.some(e => e.type === 'payment_request');
 
-                grid.innerHTML += `<div class="table-card ${statusClass}" onclick="openTableDetail(${i})">Masa ${i}<div class="table-status">${statusText}</div></div>`;
+                if(paymentRequested) {
+                    statusClass = 'table-payment';
+                    statusText = '💳 Hesap İstendi';
+                } else if(allItemsReady) {
+                    statusClass = 'table-ready'; 
+                    statusText = '✅ Tümü Hazır'; 
+                } else if(hasOrder) { 
+                    statusClass = 'table-order'; 
+                    statusText = '🔥 Hazırlanıyor'; 
+                } else if(hasWaiterCall) { 
+                    statusClass = 'table-waiter'; 
+                    statusText = '🔔 Çağrı'; 
+                }
+
+                let priceHtml = tableTotalPrice > 0 ? `<div class="table-price-tag">${tableTotalPrice} TL</div>` : '';
+
+                grid.innerHTML += `
+                    <div class="table-card ${statusClass}" onclick="openTableDetail(${i})">
+                        Masa ${i}
+                        <div class="table-status">${statusText}</div>
+                        ${priceHtml}
+                    </div>
+                `;
             }
         }
 
@@ -528,15 +557,15 @@
                     quantity: quantity,
                     updatedAt: new Date()
                 });
-                alert(`${month} ayı için ${productName} adedi (${quantity}) başarıyla güncellendi!`);
+                alert(`${month} ayı için ${productName} adedi başarıyla güncellendi!`);
                 document.getElementById('statQuantity').value = '';
             } catch(e) {
-                alert("İstatistik kaydedilirken hata oluştu.");
+                alert("Hata oluştu.");
             }
         };
 
         window.deleteStat = async (statId) => {
-            if(confirm("Bu istatistik kaydını silmek istediğinize emin misiniz?")) {
+            if(confirm("Silmek istediğinize emin misiniz?")) {
                 await deleteDoc(doc(db, "monthly_stats", statId));
             }
         };
@@ -552,16 +581,22 @@
                 document.getElementById('completeOrdersBtn').style.display = 'none';
             } else {
                 let html = '';
+                let totalTablePrice = 0;
                 events.forEach(ev => {
                     if(ev.type === 'waiter') html += `<div style="margin-bottom:8px;">🔔 Garson Çağrıldı</div>`;
-                    else if(ev.type === 'order') html += `<div>🛒 Toplam ${ev.totalPrice} TL</div>`;
+                    else if(ev.type === 'payment_request') html += `<div style="margin-bottom:8px; color:var(--info); font-weight:bold;">💳 Müşteri Hesap İstedi!</div>`;
+                    else if(ev.type === 'order') {
+                        totalTablePrice += Number(ev.totalPrice || 0);
+                        html += `<div>🛒 Sipariş Toplam: ${ev.totalPrice} TL</div>`;
+                    }
                 });
-                content.innerHTML = html;
+                content.innerHTML = html + `<hr><h4 style="margin:10px 0;">Toplam Hesap: ${totalTablePrice} TL</h4>`;
+                
                 document.getElementById('completeOrdersBtn').style.display = 'inline-block';
+                document.getElementById('completeOrdersBtn').innerText = "Hesap Al / Masayı Kapat";
                 document.getElementById('completeOrdersBtn').onclick = async () => {
                     for(const ev of events) {
-                        if(ev.type === 'order') await window.completeAndCountOrder(ev.id);
-                        else await updateDoc(doc(db, "orders", ev.id), { status: 'completed' });
+                        await updateDoc(doc(db, "orders", ev.id), { status: 'completed' });
                     }
                     modal.style.display = 'none';
                 };
