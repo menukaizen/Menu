@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    <!-- MASA DETAY PENCERESİ (Gelecek adımlar için hazırlandı) -->
+    <!-- MASA DETAY PENCERESİ -->
     <div id="tableDetailModal">
         <div class="modal-content">
             <h3 id="detailTableTitle">Masa Detayı</h3>
@@ -263,7 +263,7 @@
             }
         });
 
-        // 3. Siparişleri ve Garson Çağrılarını Dinleme (Müşteri ekranı yapılınca buraya düşecek)
+        // 3. Siparişleri ve Garson Çağrılarını Dinleme (Gerçek Zamanlı)
         onSnapshot(collection(db, "orders"), (snapshot) => {
             activeOrders = {};
             snapshot.forEach(d => {
@@ -323,9 +323,19 @@
                     if(ev.type === 'waiter') {
                         html += `<div class="order-list-item" style="border-left: 4px solid var(--edit);">🔔 Garson Çağrıldı! (Saat: ${new Date(ev.createdAt?.toDate()).toLocaleTimeString()})</div>`;
                     } else if(ev.type === 'order') {
+                        
+                        // SİPARİŞ EDİLEN ÜRÜNLERİ DÖNGÜYE SOKUP LİSTELEME
+                        let itemListHtml = '<ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 14px; color: #2f3640;">';
+                        if (ev.items && ev.items.length > 0) {
+                            ev.items.forEach(item => {
+                                itemListHtml += `<li>${item.name} <span style="color:var(--primary); font-weight:600;">(${item.price} TL)</span></li>`;
+                            });
+                        }
+                        itemListHtml += '</ul>';
+
                         html += `<div class="order-list-item" style="border-left: 4px solid var(--primary);">
                             <strong>🛒 Yeni Sipariş:</strong> Toplam ${ev.totalPrice} TL
-                            <p style="font-size:13px; margin:5px 0 0 0;">(Müşteri ekranından sepet bağlandığında ürünler burada listelenecek)</p>
+                            ${itemListHtml}
                         </div>`;
                     }
                 });
@@ -355,7 +365,7 @@
         }
 
 
-        // -- ÜRÜN YÖNETİMİ KODLARI (Aynı Bırakıldı) --
+        // -- ÜRÜN YÖNETİMİ KODLARI --
         const codeModal = document.getElementById('codeModal');
         document.getElementById('openCodeModalBtn').onclick = () => codeModal.style.display = 'flex';
         document.getElementById('closeModalBtn').onclick = () => codeModal.style.display = 'none';
