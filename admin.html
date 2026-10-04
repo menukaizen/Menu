@@ -377,7 +377,7 @@
 
                             liveListHtml += `<tr>
                                 <td><strong>Masa ${data.tableNo}</strong></td>
-                                ><td>${statusBadge}</td>
+                                <td>${statusBadge}</td>
                                 <td>${itemsText}</td>
                                 <td><b>${data.totalPrice} TL</b><br><small>${timeStr}</small></td>
                                 <td>${actionButtons}</td>
@@ -391,6 +391,7 @@
                 liveBody.innerHTML = liveListHtml || '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Aktif sipariş veya çağrı bulunmuyor.</td></tr>';
             });
 
+            // Aylık istatistik verilerini doğrudan dinle
             onSnapshot(collection(db, "monthly_stats"), (statSnap) => {
                 renderBarCharts(statSnap);
             });
@@ -410,7 +411,7 @@
             }
         };
 
-        // Hesap Alındığında / Masa Kapatıldığında Ürünleri Otomatik Aylık İstatistiğe Ekleme
+        // Hesap Kapatıldığında Ürünleri Aylık İstatistiğe Kaydetme
         window.closeTablePayments = async (tableNo) => {
             if(confirm(`Masa ${tableNo} hesabı kapatılıp istatistiklere işlensin mi?`)) {
                 try {
