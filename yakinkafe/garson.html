@@ -41,7 +41,7 @@
         .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 4px; background: rgba(0,0,0,0.15); padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
         .table-price-tag { font-size: 0.8rem; font-weight: 600; margin-top: 4px; color: #fff; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 6px; }
         
-        /* Kompakt Canlı Bildirim Listesi */
+        /* Canlı Bildirim Listesi */
         .live-notifications-panel { max-width: 800px; margin: 20px auto; padding: 0 15px; }
         .notif-list { display: flex; flex-direction: column; gap: 8px; }
         .notif-row { background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--warning); font-size: 0.9rem; }
@@ -159,7 +159,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
@@ -234,7 +234,7 @@
                             notifHtml += `
                                 <div class="notif-row payment-row">
                                     <div class="notif-text">💳 <b>Masa ${data.tableNo}:</b> Hesap İstendi!</div>
-                                    <button class="btn-payment-sm" onclick="window.resolvePayment('${data.tableNo}')">Hesap Ödendi</button>
+                                    <button class="btn-payment-sm" onclick="window.resolvePayment(${data.tableNo})">Hesap Ödendi</button>
                                 </div>
                             `;
                         } else if(data.type === 'order' && data.items) {
@@ -259,12 +259,38 @@
             loadMenu();
         }
 
-        // Garson hesap ödendi butonuna bastığında o masaya ait TÜM aktif siparişler/talepler tamamlanır
+        // Garson "Hesap Ödendi" butonuna bastığında hem masa kapanır hem de Aylık İstatistiğe (Bar Grafiğe) işlenir
         window.resolvePayment = async (tableNo) => {
-            if(confirm(`Masa ${tableNo} hesabı ödendi olarak kapatılsın mı?`)) {
+            if(confirm(`Masa ${tableNo} hesabı ödenip kapatılsın ve istatistiklere işlensin mi?`)) {
                 try {
                     const events = activeOrders[tableNo] || [];
-                    await Promise.all(events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' })));
+                    const monthsNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+                    const currentMonth = monthsNames[new Date().getMonth()];
+
+                    for(const ev of events) {
+                        if(ev.type === 'order' && ev.items) {
+                            for(const item of ev.items) {
+                                const statDocId = `${currentMonth}_${item.name}`;
+                                const statRef = doc(db, "monthly_stats", statDocId);
+                                const statSnap = await getDoc(statRef);
+
+                                let existingQty = 0;
+                                if(statSnap.exists()) {
+                                    existingQty = statSnap.data().quantity || 0;
+                                }
+
+                                await setDoc(statRef, {
+                                    month: currentMonth,
+                                    productName: item.name,
+                                    quantity: existingQty + 1,
+                                    updatedAt: new Date()
+                                });
+                            }
+                        }
+                        await updateDoc(doc(db, "orders", ev.id), { status: 'completed' });
+                    }
+                    document.getElementById('tableActionModal').style.display = 'none';
+                    alert(`Masa ${tableNo} kapatıldı ve satışlar grafiklere eklendi!`);
                 } catch(e) {
                     alert("İşlem sırasında hata oluştu.");
                 }
@@ -312,7 +338,7 @@
 
                 let hasOrder = orderEvents.length > 0;
                 let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true));
-                let someItemReady = hasOrder && orderEvents.some(ev => ev.items && ev.items.some(item => item.ready === true && item.served !== true));
+                let someItemReady = hasOrder && orderEvents.some(ev => ev.items && ev.items.some(item => item.ready === true));
 
                 if(paymentRequested) {
                     statusClass = 'table-payment';
@@ -372,21 +398,17 @@
                 }
             });
             content.innerHTML = html + `<hr><h4 style="margin:10px 0;">Toplam Tutar: ${totalTablePrice} TL</h4>`; 
+            
+            // Modal içindeki hesap ödendi butonunu bağla
+            document.getElementById('clearTableBtn').onclick = () => {
+                window.resolvePayment(tableNo);
+            };
+
             modal.style.display = 'flex';
         }
 
         document.getElementById('closeActionBtn').onclick = () => document.getElementById('tableActionModal').style.display = 'none';
         document.getElementById('addMoreBtn').onclick = () => { document.getElementById('tableActionModal').style.display = 'none'; openMenuForTable(currentTableNo); };
-        
-        document.getElementById('clearTableBtn').onclick = async () => {
-            const btn = document.getElementById('clearTableBtn'), events = activeOrders[currentTableNo] || [];
-            btn.innerText = "İşleniyor...";
-            try {
-                await Promise.all(events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' })));
-                document.getElementById('tableActionModal').style.display = 'none';
-            } catch (e) { alert("Hata oluştu."); }
-            btn.innerText = "💳 Hesap Ödendi (Masayı Kapat)";
-        };
 
         function openMenuForTable(tableNo) {
             document.getElementById('view-tables').classList.remove('active'); document.getElementById('view-menu').classList.add('active');
