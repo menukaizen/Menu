@@ -296,19 +296,20 @@
                         let diffMs = now - orderTime;
                         let canCancel = diffMs < 60000; // İlk 1 dakikada iptal edilebilir
 
-                        // Mutfak durumuna göre metin değişimi
-                        let statusText = data.kitchenStatus === 'ready' 
-                            ? '<span style="font-size:0.8rem; font-weight:600; color:var(--success);">✅ Hazırlandı / Servis Bekliyor!</span>' 
-                            : '<span style="font-size:0.75rem; color:var(--info);">🔥 Hazırlanıyor...</span>';
-
                         data.items.forEach(item => {
                             total += Number(item.price);
                             itemCount++;
+
+                            // Ürünün kendi ready değerine göre müşteri ekranında durum yazısı
+                            let itemStatusText = item.ready === true 
+                                ? '<span style="font-size:0.8rem; font-weight:600; color:var(--success);">✅ Hazır / Servis Bekliyor!</span>' 
+                                : '<span style="font-size:0.75rem; color:var(--info);">🔥 Hazırlanıyor...</span>';
+
                             html += `
                                 <div class="cart-item">
                                     <div class="cart-item-info">
                                         <span class="cart-item-title">${item.name}</span>
-                                        ${statusText}
+                                        ${itemStatusText}
                                         ${canCancel ? `<button class="btn-cancel-order" onclick="window.cancelOrder('${orderId}')">Siparişi İptal Et</button>` : ''}
                                     </div>
                                     <span class="cart-item-price">${item.price} TL</span>
@@ -368,7 +369,7 @@
                     alert(`Masa ${currentTableNo} için garson çağrıldı!`);
                 } catch (error) { alert("Bir hata oluştu."); }
                 
-                btn.innerText = "🔔 Garson Çağrır";
+                btn.innerText = "🔔 Garson Çağır";
                 btn.disabled = false;
             });
         };
@@ -382,7 +383,8 @@
                 btn.disabled = true;
 
                 const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-                const orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price }));
+                // Her ürünün başlangıçta ready: false olarak kaydedilmesini sağlıyoruz
+                const orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price, ready: false }));
 
                 try {
                     await addDoc(collection(db, "orders"), {
@@ -391,7 +393,6 @@
                         items: orderItems,
                         totalPrice: total,
                         status: "pending",
-                        kitchenStatus: "preparing", // Başlangıç aşaması
                         createdAt: new Date()
                     });
                     
