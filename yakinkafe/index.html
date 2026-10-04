@@ -7,29 +7,55 @@
     <title>Yakın Kafe - Dijital Menü</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); }
+        :root { --primary-color: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 80px; }
         #loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
         .spinner { width: 40px; height: 40px; border: 4px solid #dfe4ea; border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .loaded-hide { opacity: 0; pointer-events: none; }
-        header { background-color: var(--card-bg); padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .header-subtitle { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        header h1 { margin: 0; color: var(--text-main); font-size: 1.8rem; }
-        .menu-container { max-width: 800px; margin: 20px auto 60px auto; padding: 0 15px; }
-        .category-title { font-size: 1.4rem; font-weight: 600; padding-bottom: 8px; margin-top: 40px; margin-bottom: 15px; color: var(--text-main); border-bottom: 2px solid var(--border-color); }
+        
+        header { background-color: var(--card-bg); padding: 15px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        header h1 { margin: 0 0 10px 0; color: var(--text-main); font-size: 1.5rem; }
+        
+        /* Masa ve Garson Kontrol Alanı */
+        .top-controls { display: flex; justify-content: center; gap: 10px; align-items: center; max-width: 800px; margin: 0 auto; flex-wrap: wrap; }
+        .table-input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; width: 100px; text-align: center; font-family: inherit; font-weight: 500; }
+        .btn-waiter { background-color: var(--warning); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: 600; font-family: inherit; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn-waiter:active { transform: scale(0.95); }
+
+        .menu-container { max-width: 800px; margin: 10px auto; padding: 0 15px; }
+        .category-title { font-size: 1.4rem; font-weight: 600; padding-bottom: 8px; margin-top: 30px; margin-bottom: 15px; color: var(--text-main); border-bottom: 2px solid var(--border-color); }
         .menu-list { display: flex; flex-direction: column; gap: 15px; }
-        .menu-item { background: var(--card-bg); border-radius: 10px; padding: 15px; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
-        .item-img { width: 90px; height: 90px; min-width: 90px; border-radius: 8px; object-fit: cover; background-color: #eee; }
-        .item-content { padding-left: 15px; flex-grow: 1; }
-        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-        .item-title { margin: 0; font-size: 1.05rem; font-weight: 600; }
-        .price-container { text-align: right; min-width: 75px; }
-        .old-price { display: block; text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem; }
-        .item-price { color: var(--primary-color); font-weight: 600; font-size: 1.1rem; }
-        .item-desc { margin: 0; color: var(--text-muted); font-size: 0.85rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .empty-msg { text-align: center; color: var(--text-muted); padding: 40px; }
-        @media (max-width: 480px) { .menu-item { padding: 10px; } .item-img { width: 75px; height: 75px; min-width: 75px; } .item-content { padding-left: 10px; } }
+        .menu-item { background: var(--card-bg); border-radius: 10px; padding: 12px; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid var(--border-color); position: relative; }
+        .item-img { width: 80px; height: 80px; min-width: 80px; border-radius: 8px; object-fit: cover; background-color: #eee; }
+        .item-content { padding-left: 12px; flex-grow: 1; padding-right: 40px; }
+        .item-title { margin: 0 0 5px 0; font-size: 1rem; font-weight: 600; }
+        .item-price { color: var(--primary-color); font-weight: 600; font-size: 1rem; }
+        .item-desc { margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.8rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Sepete Ekle Butonu */
+        .add-to-cart-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: var(--primary-color); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(232, 65, 24, 0.3); transition: 0.2s; }
+        .add-to-cart-btn:active { transform: translateY(-50%) scale(0.9); }
+
+        /* Yüzen Sepet Butonu */
+        .floating-cart { position: fixed; bottom: 20px; right: 20px; background: var(--text-main); color: white; padding: 12px 20px; border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; gap: 10px; z-index: 1000; transition: 0.3s; }
+        .cart-badge { background: var(--primary-color); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; }
+        
+        /* Sepet Modalı */
+        #cartModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; flex-direction: column; justify-content: flex-end; }
+        .cart-content { background: white; width: 100%; max-height: 80vh; border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
+        .cart-header h2 { margin: 0; font-size: 1.2rem; }
+        .close-cart { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        .cart-items { overflow-y: auto; flex-grow: 1; margin-bottom: 15px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        .cart-item-info { display: flex; flex-direction: column; }
+        .cart-item-title { font-weight: 600; font-size: 0.9rem; }
+        .cart-item-price { color: var(--primary-color); font-size: 0.9rem; }
+        .remove-item { color: var(--text-muted); background: none; border: none; font-size: 0.8rem; text-decoration: underline; cursor: pointer; padding: 0; text-align: left; margin-top: 3px; }
+        .cart-total { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; }
+        .btn-order { background: var(--primary-color); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
@@ -37,15 +63,44 @@
     <div id="loader-wrapper"><div class="spinner"></div><div style="font-weight:500;">Menü Yükleniyor...</div></div>
 
     <header>
-        <div class="header-subtitle">Makarna · Lezzet Durağı</div>
         <h1>Yakın Kafe</h1>
+        <div class="top-controls">
+            <input type="number" id="tableNoInput" class="table-input" placeholder="Masa No" min="1">
+            <button class="btn-waiter" id="callWaiterBtn">🔔 Garson Çağır</button>
+        </div>
     </header>
 
     <div class="menu-container" id="menuContainer"></div>
 
+    <!-- Yüzen Sepet Butonu -->
+    <div class="floating-cart" id="cartBtn" style="display: none;">
+        <span>Sepetim</span>
+        <div class="cart-badge" id="cartCount">0</div>
+        <span id="cartTotalPreview">0 TL</span>
+    </div>
+
+    <!-- Sepet Modalı -->
+    <div id="cartModal">
+        <div class="cart-content">
+            <div class="cart-header">
+                <h2>Sipariş Özeti</h2>
+                <button class="close-cart" id="closeCartBtn">&times;</button>
+            </div>
+            <div class="cart-items" id="cartItemsList">
+                <!-- Sepetteki ürünler buraya gelecek -->
+            </div>
+            <div class="cart-total">
+                <span>Toplam:</span>
+                <span id="cartTotalPrice">0 TL</span>
+            </div>
+            <button class="btn-order" id="placeOrderBtn">Siparişi Onayla</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        // 'addDoc' eklendi!
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
@@ -53,48 +108,46 @@
             projectId: "yakinkafe",
             storageBucket: "yakinkafe.firebasestorage.app",
             messagingSenderId: "706625633005",
-            appId: "1:706625633005:web:3d7efed129b2d0d895eae4",
-            measurementId: "G-THPJ9R183N"
+            appId: "1:706625633005:web:3d7efed129b2d0d895eae4"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
+        let productsData = []; // Ürünleri hafızada tutacağız
+        let cart = []; // Sepet dizisi
 
         async function loadMenu() {
             const container = document.getElementById('menuContainer');
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
                 if(querySnapshot.empty) {
-                    container.innerHTML = '<div class="empty-msg">Menüde henüz ürün yok.</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#7f8fa6;">Menüde henüz ürün yok.</div>';
                     document.getElementById('loader-wrapper').classList.add('loaded-hide');
                     return;
                 }
 
                 const categories = {};
                 querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                    const data = { id: doc.id, ...doc.data() };
+                    productsData.push(data); // Tüm ürünleri diziye atıyoruz
                     if(!categories[data.category]) categories[data.category] = [];
-                    categories[data.category].push({ id: doc.id, ...data });
+                    categories[data.category].push(data);
                 });
 
                 let htmlContent = '';
                 for (const [category, items] of Object.entries(categories)) {
                     htmlContent += `<div class="category-title">${category}</div><div class="menu-list">`;
                     items.forEach(item => {
-                        let priceHtml = '';
-                        if(item.oldPrice) priceHtml += `<span class="old-price">${item.oldPrice} TL</span>`;
-                        priceHtml += `<span class="item-price">${item.price} TL</span>`;
-
                         htmlContent += `
                             <div class="menu-item">
-                                <img src="${item.imageUrl || 'https://via.placeholder.com/90'}" alt="${item.name}" class="item-img">
+                                <img src="${item.imageUrl || 'https://via.placeholder.com/80'}" alt="${item.name}" class="item-img">
                                 <div class="item-content">
-                                    <div class="item-header">
-                                        <h3 class="item-title">${item.name}</h3>
-                                        <div class="price-container">${priceHtml}</div>
-                                    </div>
+                                    <h3 class="item-title">${item.name}</h3>
+                                    <div class="item-price">${item.price} TL</div>
                                     <p class="item-desc">${item.desc}</p>
                                 </div>
+                                <button class="add-to-cart-btn" onclick="window.addToCart('${item.id}')">+</button>
                             </div>
                         `;
                     });
@@ -103,11 +156,152 @@
                 container.innerHTML = htmlContent;
             } catch (error) {
                 console.error("Hata:", error);
-                container.innerHTML = '<div class="empty-msg">Bağlantı hatası oluştu.</div>';
+                container.innerHTML = '<div style="text-align:center; padding:40px;">Bağlantı hatası oluştu.</div>';
             }
             document.getElementById('loader-wrapper').classList.add('loaded-hide');
         }
 
+        // --- SEPET İŞLEMLERİ ---
+        window.addToCart = (productId) => {
+            const product = productsData.find(p => p.id === productId);
+            if(product) {
+                cart.push(product);
+                updateCartUI();
+                
+                // Küçük bir geri bildirim animasyonu (opsiyonel)
+                const cartBtn = document.getElementById('cartBtn');
+                cartBtn.style.transform = 'scale(1.1)';
+                setTimeout(() => cartBtn.style.transform = 'scale(1)', 200);
+            }
+        };
+
+        window.removeFromCart = (index) => {
+            cart.splice(index, 1);
+            updateCartUI();
+        };
+
+        function updateCartUI() {
+            const cartBtn = document.getElementById('cartBtn');
+            const cartCount = document.getElementById('cartCount');
+            const cartTotalPreview = document.getElementById('cartTotalPreview');
+            const cartItemsList = document.getElementById('cartItemsList');
+            const cartTotalPrice = document.getElementById('cartTotalPrice');
+
+            if(cart.length > 0) {
+                cartBtn.style.display = 'flex';
+            } else {
+                cartBtn.style.display = 'none';
+                document.getElementById('cartModal').style.display = 'none'; // Sepet boşsa kapat
+            }
+
+            let total = 0;
+            let listHtml = '';
+            
+            cart.forEach((item, index) => {
+                total += Number(item.price);
+                listHtml += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <span class="cart-item-title">${item.name}</span>
+                            <button class="remove-item" onclick="window.removeFromCart(${index})">Çıkar</button>
+                        </div>
+                        <span class="cart-item-price">${item.price} TL</span>
+                    </div>
+                `;
+            });
+
+            cartCount.innerText = cart.length;
+            cartTotalPreview.innerText = `${total} TL`;
+            cartTotalPrice.innerText = `${total} TL`;
+            cartItemsList.innerHTML = listHtml;
+        }
+
+        // Modalı Aç / Kapat
+        document.getElementById('cartBtn').onclick = () => document.getElementById('cartModal').style.display = 'flex';
+        document.getElementById('closeCartBtn').onclick = () => document.getElementById('cartModal').style.display = 'none';
+
+        // --- VERİTABANINA YAZMA İŞLEMLERİ ---
+
+        // 1. Garson Çağırma
+        document.getElementById('callWaiterBtn').onclick = async () => {
+            const tableNo = document.getElementById('tableNoInput').value;
+            if(!tableNo) return alert("Lütfen önce masa numaranızı girin!");
+
+            const btn = document.getElementById('callWaiterBtn');
+            btn.innerText = "Çağrılıyor...";
+            btn.disabled = true;
+
+            try {
+                // "orders" koleksiyonuna yazma işlemi
+                await addDoc(collection(db, "orders"), {
+                    type: "waiter",
+                    tableNo: Number(tableNo),
+                    status: "pending", // pending: bekleniyor, completed: tamamlandı
+                    createdAt: new Date()
+                });
+                alert(`Masa ${tableNo} için garson çağrıldı!`);
+            } catch (error) {
+                console.error(error);
+                alert("Bir hata oluştu, lütfen tekrar deneyin.");
+            }
+            
+            btn.innerText = "🔔 Garson Çağır";
+            btn.disabled = false;
+        };
+
+        // 2. Sipariş Verme
+        document.getElementById('placeOrderBtn').onclick = async () => {
+            const tableNo = document.getElementById('tableNoInput').value;
+            if(!tableNo) {
+                alert("Lütfen üst kısımdan masa numaranızı girin!");
+                document.getElementById('cartModal').style.display = 'none';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            if(cart.length === 0) return;
+
+            const btn = document.getElementById('placeOrderBtn');
+            btn.innerText = "Sipariş İletiliyor...";
+            btn.disabled = true;
+
+            const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
+            
+            // Sepetteki ürünlerin sadece gerekli bilgilerini alalım (veritabanını şişirmemek için)
+            const orderItems = cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price
+            }));
+
+            try {
+                // "orders" koleksiyonuna yazma işlemi
+                await addDoc(collection(db, "orders"), {
+                    type: "order",
+                    tableNo: Number(tableNo),
+                    items: orderItems,
+                    totalPrice: total,
+                    status: "pending",
+                    createdAt: new Date()
+                });
+                
+                alert("Siparişiniz başarıyla alındı! Afiyet olsun.");
+                
+                // Sepeti sıfırla
+                cart = [];
+                updateCartUI();
+                document.getElementById('cartModal').style.display = 'none';
+
+            } catch (error) {
+                console.error(error);
+                alert("Sipariş verilirken bir hata oluştu.");
+            }
+
+            btn.innerText = "Siparişi Onayla";
+            btn.disabled = false;
+        };
+
+        // Sayfa yüklendiğinde menüyü çek
         loadMenu();
     </script>
 </body>
