@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <!-- MASA DETAY MODALI (Opsiyonel alternatif tıklandığında açılır) -->
+    <!-- MASA DETAY MODALI -->
     <div id="tableDetailModal">
         <div class="modal-content">
             <h3 id="detailTableTitle">Masa Detayı</h3>
@@ -186,7 +186,7 @@
                         <th>İşlem / Durum</th>
                         <th>İçerik (Ne İstendi?)</th>
                         <th>Tutar / Saat</th>
-                        <th>İşlem Yap</th>
+                        <th>İşlemler</th>
                     </tr>
                 </thead>
                 <tbody id="liveOrdersTableBody">
@@ -303,7 +303,6 @@
                     if(!activeOrders[data.tableNo]) activeOrders[data.tableNo] = [];
                     activeOrders[data.tableNo].push({ id, ...data });
 
-                    // Canlı tablo satırları oluşturma
                     let timeStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
                     
                     if(data.type === 'waiter') {
@@ -312,7 +311,10 @@
                             <td><span style="background:var(--edit); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔔 Garson Çağrısı</span></td>
                             <td>Masa garson çağırıyor.</td>
                             <td>${timeStr}</td>
-                            <td><button class="btn btn-success" onclick="window.completeSingleOrder('${id}')">Tamamla / Kaldır</button></td>
+                            <td>
+                                <button class="btn btn-success" onclick="window.updateOrderStatus('${id}', 'completed')">Tamamla</button>
+                                <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>
+                            </td>
                         </tr>`;
                     } else if(data.type === 'order') {
                         let itemsText = '<ul style="margin:0; padding-left:15px;">';
@@ -326,7 +328,10 @@
                             <td><span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🛒 Sipariş</span></td>
                             <td>${itemsText}</td>
                             <td><b>${data.totalPrice} TL</b><br><small>${timeStr}</small></td>
-                            <td><button class="btn btn-success" onclick="window.completeSingleOrder('${id}')">Servis Edildi / Bitir</button></td>
+                            <td>
+                                <button class="btn btn-success" style="margin-bottom: 5px;" onclick="window.updateOrderStatus('${id}', 'completed')">Servis Edildi / Bitir</button><br>
+                                <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>
+                            </td>
                         </tr>`;
                     }
                 }
@@ -347,12 +352,12 @@
             liveBody.innerHTML = liveListHtml || '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Aktif sipariş veya çağrı bulunmuyor.</td></tr>';
         });
 
-        // Tek bir siparişi veya çağrıyı doğrudan listeden bitirme fonksiyonu
-        window.completeSingleOrder = async (orderId) => {
+        // Siparişi tamamlama veya iptal etme ortak fonksiyonu
+        window.updateOrderStatus = async (orderId, newStatus) => {
             try {
-                await updateDoc(doc(db, "orders", orderId), { status: 'completed' });
+                await updateDoc(doc(db, "orders", orderId), { status: newStatus });
             } catch(e) {
-                alert("İşlem yapılırken hata oluştu.");
+                alert("İşlem sırasında hata oluştu.");
             }
         };
 
@@ -524,5 +529,7 @@
             if(confirm("Silmek istiyor musunuz?")) { await deleteDoc(doc(db, "products", id)); loadAdminMenu(); }
         };
     </script>
+</body>
+</html>
 </body>
 </html>
