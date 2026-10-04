@@ -7,7 +7,7 @@
     <title>Yakın Kafe - Dijital Menü</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; --info: #3498db; }
+        :root { --primary-color: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; --info: #3498db; --danger: #c23616; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 80px; }
         #loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
         .spinner { width: 40px; height: 40px; border: 4px solid #dfe4ea; border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
@@ -39,10 +39,7 @@
         .floating-cart { position: fixed; bottom: 20px; right: 20px; background: var(--text-main); color: white; padding: 12px 20px; border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; gap: 10px; z-index: 1000; transition: 0.3s; }
         .cart-badge { background: var(--primary-color); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; }
         
-        /* Modallar Genel */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; }
-        
-        /* Alttan Açılan Modallar (Sepet ve Siparişlerim) */
         .bottom-modal { flex-direction: column; justify-content: flex-end; }
         .cart-content { background: white; width: 100%; max-height: 80vh; border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -58,14 +55,15 @@
         .cart-total { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; }
         .btn-order { background: var(--primary-color); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%; }
 
+        .btn-cancel-order { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.75rem; font-weight: 600; cursor: pointer; margin-top: 4px; width: fit-content; }
+        .btn-add-more { background: var(--success); color: white; border: none; padding: 12px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; text-align: center; display: block; }
+
         /* Masa No Sorma Modalı */
         #tablePromptModal { align-items: center; justify-content: center; z-index: 2500; }
-        .table-prompt-content { background: white; padding: 30px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.2); animation: scaleIn 0.2s ease; }
-        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .table-prompt-content { background: white; padding: 30px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
         .table-prompt-content h3 { margin: 0 0 10px 0; font-size: 1.3rem; }
         .table-prompt-content p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; }
-        #modalTableInput { width: 100%; padding: 15px; font-size: 1.2rem; text-align: center; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; font-family: inherit; font-weight: 600; }
-        #modalTableInput:focus { border-color: var(--primary-color); }
+        #modalTableInput { width: 100%; padding: 15px; font-size: 1.2rem; text-align: center; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; outline: none; font-family: inherit; font-weight: 600; }
         .table-prompt-btns { display: flex; gap: 10px; }
         .btn-cancel-table { flex: 1; padding: 12px; background: #f1f2f6; border: none; border-radius: 8px; font-weight: 600; color: var(--text-main); cursor: pointer; }
         .btn-confirm-table { flex: 1; padding: 12px; background: var(--primary-color); border: none; border-radius: 8px; font-weight: 600; color: white; cursor: pointer; }
@@ -85,7 +83,6 @@
 
     <div class="menu-container" id="menuContainer"></div>
 
-    <!-- Yüzen Sepet Butonu -->
     <div class="floating-cart" id="cartBtn" style="display: none;">
         <span>Sepetim</span>
         <div class="cart-badge" id="cartCount">0</div>
@@ -115,14 +112,13 @@
                 <h2>Masa <span id="displayTableNo"></span> Siparişleri</h2>
                 <button class="close-cart" id="closeMyOrdersBtn">&times;</button>
             </div>
-            <div class="cart-items" id="myOrdersList">
-                <!-- Siparişler buraya yüklenecek -->
-            </div>
+            <div class="cart-items" id="myOrdersList"></div>
             <div class="cart-total">
                 <span>Toplam Hesap:</span>
                 <span id="myOrdersTotal">0 TL</span>
             </div>
-            <!-- Masayı Yanlış Girenler İçin Sıfırlama Butonu -->
+            <!-- "Ekleme Yap" butonu her zaman görünür olacak -->
+            <button class="btn-add-more" id="addMoreItemsBtn">➕ Siparişe Yeni Ürün Ekle</button>
             <button class="btn-cancel-table" id="resetTableBtn" style="width:100%; margin-top:10px;">Masayı Değiştir / Çıkış Yap</button>
         </div>
     </div>
@@ -142,7 +138,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, query, where, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
@@ -158,33 +154,9 @@
         
         let productsData = []; 
         let cart = []; 
-        let currentTableNo = null; 
+        let currentTableNo = localStorage.getItem('yakinkafe_tableNo'); 
         let pendingCallback = null; 
         let myOrdersUnsubscribe = null; 
-
-        // --- 1 SAATLİK HAFIZA KONTROLÜ (YENİ EKLENDİ) ---
-        function checkSavedTable() {
-            const savedData = localStorage.getItem('yakinkafe_tableData');
-            if (savedData) {
-                try {
-                    const parsed = JSON.parse(savedData);
-                    const now = new Date().getTime();
-                    const oneHour = 60 * 60 * 1000; // 1 saat (Milisaniye)
-                    
-                    if (now - parsed.timestamp < oneHour) {
-                        // Süre henüz dolmamış, masayı hatırla
-                        currentTableNo = parsed.tableNo;
-                    } else {
-                        // 1 saat geçmiş, hafızadan sil
-                        localStorage.removeItem('yakinkafe_tableData');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('yakinkafe_tableData');
-                }
-            }
-        }
-        
-        checkSavedTable(); // Sayfa açılır açılmaz kontrol et
 
         async function loadMenu() {
             const container = document.getElementById('menuContainer');
@@ -229,7 +201,6 @@
             document.getElementById('loader-wrapper').classList.add('loaded-hide');
         }
 
-        // --- SEPET İŞLEMLERİ ---
         window.addToCart = (productId) => {
             const product = productsData.find(p => p.id === productId);
             if(product) {
@@ -270,7 +241,6 @@
         document.getElementById('cartBtn').onclick = () => document.getElementById('cartModal').style.display = 'flex';
         document.getElementById('closeCartBtn').onclick = () => document.getElementById('cartModal').style.display = 'none';
 
-        // --- MASA NUMARASI SORMA MANTIĞI ---
         function requireTableNumber(actionCallback) {
             if (currentTableNo) {
                 actionCallback();
@@ -290,7 +260,7 @@
             const inputVal = document.getElementById('modalTableInput').value;
             if(!inputVal || inputVal < 1) return alert("Lütfen geçerli bir masa numarası girin.");
             
-            initTable(inputVal); // Masayı başlat ve hafızaya saat ile kaydet
+            initTable(inputVal);
             document.getElementById('tablePromptModal').style.display = 'none';
             
             if(pendingCallback) {
@@ -299,17 +269,9 @@
             }
         };
 
-        // --- MASAYI TANITMA VE SİPARİŞLERİ DİNLEME ---
         function initTable(tableNo) {
             currentTableNo = tableNo;
-            
-            // Masayı o anki saat damgasıyla birlikte kaydet
-            const dataToSave = {
-                tableNo: currentTableNo,
-                timestamp: new Date().getTime()
-            };
-            localStorage.setItem('yakinkafe_tableData', JSON.stringify(dataToSave));
-            
+            localStorage.setItem('yakinkafe_tableNo', currentTableNo);
             document.getElementById('displayTableNo').innerText = currentTableNo;
             document.getElementById('myOrdersBtn').style.display = 'inline-block';
             listenToMyOrders(currentTableNo);
@@ -324,10 +286,18 @@
                 let total = 0;
                 let html = '';
                 let itemCount = 0;
+                const now = new Date().getTime();
                 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const orderId = docSnap.id;
+
                     if(data.status === 'pending' && data.type === 'order') {
+                        // 1 dakika (60.000 ms) kontrolü
+                        let orderTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : now;
+                        let diffMs = now - orderTime;
+                        let canCancel = diffMs < 60000; // Sadece ilk 1 dakikada iptal edilebilir
+
                         data.items.forEach(item => {
                             total += Number(item.price);
                             itemCount++;
@@ -336,6 +306,7 @@
                                     <div class="cart-item-info">
                                         <span class="cart-item-title">${item.name}</span>
                                         <span style="font-size:0.75rem; color:var(--success);">Hazırlanıyor...</span>
+                                        ${canCancel ? `<button class="btn-cancel-order" onclick="window.cancelOrder('${orderId}')">Siparişi İptal Et</button>` : ''}
                                     </div>
                                     <span class="cart-item-price">${item.price} TL</span>
                                 </div>
@@ -344,13 +315,29 @@
                     }
                 });
 
-                document.getElementById('myOrdersList').innerHTML = html || '<p style="text-align:center; color:#7f8fa6; margin-top:20px; font-size:0.9rem;">Henüz aktif bir siparişiniz bulunmuyor veya ürünleriniz teslim edildi.</p>';
+                document.getElementById('myOrdersList').innerHTML = html || '<p style="text-align:center; color:#7f8fa6; margin-top:20px; font-size:0.9rem;">Aktif siparişiniz bulunmuyor.</p>';
                 document.getElementById('myOrdersTotal').innerText = `${total} TL`;
                 document.getElementById('myOrdersCountBadge').innerText = itemCount;
             });
         }
 
-        // Sayfa yüklendiğinde hafızada geçerli bir masa varsa direkt başlat
+        window.cancelOrder = async (orderId) => {
+            if(confirm("Siparişinizi iptal etmek istediğinize emin misiniz?")) {
+                try {
+                    await deleteDoc(doc(db, "orders", orderId));
+                    alert("Siparişiniz iptal edildi.");
+                } catch(e) {
+                    alert("İptal edilirken bir hata oluştu.");
+                }
+            }
+        };
+
+        // "Ekleme Yap" butonu her zaman menüye dönmeyi sağlar
+        document.getElementById('addMoreItemsBtn').onclick = () => {
+            document.getElementById('myOrdersModal').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
         if(currentTableNo) {
             initTable(currentTableNo);
         }
@@ -358,13 +345,10 @@
         document.getElementById('myOrdersBtn').onclick = () => document.getElementById('myOrdersModal').style.display = 'flex';
         document.getElementById('closeMyOrdersBtn').onclick = () => document.getElementById('myOrdersModal').style.display = 'none';
 
-        // Masayı Değiştir (Sıfırla) Butonu
         document.getElementById('resetTableBtn').onclick = () => {
-            localStorage.removeItem('yakinkafe_tableData');
+            localStorage.removeItem('yakinkafe_tableNo');
             location.reload(); 
         };
-
-        // --- VERİTABANINA YAZMA İŞLEMLERİ ---
 
         document.getElementById('callWaiterBtn').onclick = () => {
             requireTableNumber(async () => {
@@ -380,7 +364,7 @@
                         createdAt: new Date()
                     });
                     alert(`Masa ${currentTableNo} için garson çağrıldı!`);
-                } catch (error) { alert("Bir hata oluştu, lütfen tekrar deneyin."); }
+                } catch (error) { alert("Bir hata oluştu."); }
                 
                 btn.innerText = "🔔 Garson Çağır";
                 btn.disabled = false;
@@ -408,14 +392,13 @@
                         createdAt: new Date()
                     });
                     
-                    alert("Siparişiniz mutfağa iletildi! 'Siparişlerim' bölümünden takip edebilirsiniz.");
+                    alert("Siparişiniz mutfağa iletildi! İlk 1 dakika içinde 'Siparişlerim' bölümünden iptal edebilirsiniz.");
                     cart = [];
                     updateCartUI();
                     document.getElementById('cartModal').style.display = 'none';
-                    
                     setTimeout(() => { document.getElementById('myOrdersModal').style.display = 'flex'; }, 500);
 
-                } catch (error) { alert("Sipariş verilirken bir hata oluştu."); }
+                } catch (error) { alert("Sipariş verilirken hata oluştu."); }
 
                 btn.innerText = "Siparişi Onayla";
                 btn.disabled = false;
