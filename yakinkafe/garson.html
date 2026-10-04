@@ -7,7 +7,7 @@
     <title>Garson POS Paneli</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #273c75; --accent: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; }
+        :root { --primary-color: #273c75; --accent: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; --info: #3498db; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 100px; }
         
         #login-screen { position: fixed; width: 100%; height: 100%; background: var(--primary-color); display: flex; justify-content: center; align-items: center; z-index: 3000; }
@@ -30,23 +30,27 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Masalar */
-        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; max-width: 800px; margin: 20px auto; padding: 0 15px; }
-        .table-card { height: 110px; background: white; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
+        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; max-width: 800px; margin: 20px auto; padding: 0 15px; }
+        .table-card { height: 120px; background: white; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; text-align: center; }
         .table-empty { border-color: #dcdde1; color: var(--text-main); }
         .table-order { background: var(--accent); color: white; border-color: var(--accent); }
         .table-ready { background: var(--success); color: white; border-color: var(--success); }
+        .table-payment { background: var(--info); color: white; border-color: var(--info); animation: pulse 1.5s infinite; }
         .table-waiter { background: var(--warning); color: white; border-color: var(--warning); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
-        .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+        .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 4px; background: rgba(0,0,0,0.15); padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
+        .table-price-tag { font-size: 0.8rem; font-weight: 600; margin-top: 4px; color: #fff; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 6px; }
         
         /* Kompakt Canlı Bildirim Listesi */
         .live-notifications-panel { max-width: 800px; margin: 20px auto; padding: 0 15px; }
         .notif-list { display: flex; flex-direction: column; gap: 8px; }
         .notif-row { background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--warning); font-size: 0.9rem; }
         .notif-row.ready-row { border-left-color: var(--success); }
+        .notif-row.payment-row { border-left-color: var(--info); }
         .notif-text { display: flex; align-items: center; gap: 8px; font-weight: 500; }
         
         .btn-serve-sm { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
+        .btn-payment-sm { background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
 
         /* Menü */
         .menu-container { max-width: 800px; margin: 10px auto; padding: 0 15px; }
@@ -109,7 +113,7 @@
             <div class="table-grid" id="tableGrid"></div>
 
             <div class="live-notifications-panel">
-                <h3 style="font-size:1.05rem; color:var(--text-main); margin-bottom:8px;">🔔 Canlı Akış (Çağrılar ve Hazır Ürünler)</h3>
+                <h3 style="font-size:1.05rem; color:var(--text-main); margin-bottom:8px;">🔔 Canlı Akış (Çağrılar, Hazır Ürünler ve Hesap Talepleri)</h3>
                 <div class="notif-list" id="liveNotifContainer">
                     <p style="color:var(--text-muted); font-size:0.85rem;">Aktif bildirim bulunmuyor.</p>
                 </div>
@@ -146,7 +150,7 @@
                 <div id="actionModalContent"></div>
                 <div class="action-btns">
                     <button class="btn-add" id="addMoreBtn">🛒 Yeni Sipariş Ekle</button>
-                    <button class="btn-clear" id="clearTableBtn">🧹 Masayı Temizle (Hesabı Kapat)</button>
+                    <button class="btn-clear" id="clearTableBtn">💳 Hesap Ödendi (Masayı Kapat)</button>
                 </div>
             </div>
         </div>
@@ -223,11 +227,17 @@
                             notifHtml += `
                                 <div class="notif-row">
                                     <div class="notif-text">🔔 <b>Masa ${data.tableNo}:</b> Garson Çağrısı Var</div>
-                                    <button class="btn-serve-sm" onclick="window.resolveOrder('${id}')">Teslim Edildi</button>
+                                    <button class="btn-serve-sm" onclick="window.resolveOrder('${id}')">Kapat</button>
+                                </div>
+                            `;
+                        } else if(data.type === 'payment_request') {
+                            notifHtml += `
+                                <div class="notif-row payment-row">
+                                    <div class="notif-text">💳 <b>Masa ${data.tableNo}:</b> Hesap İstendi!</div>
+                                    <button class="btn-payment-sm" onclick="window.resolvePayment('${data.tableNo}')">Hesap Ödendi</button>
                                 </div>
                             `;
                         } else if(data.type === 'order' && data.items) {
-                            // Sadece hazır olan ve henüz teslim edilmemiş (served: true olmayan) ürünleri listele
                             data.items.forEach((item, idx) => {
                                 if(item.ready === true && item.served !== true) {
                                     notifHtml += `
@@ -249,26 +259,29 @@
             loadMenu();
         }
 
-        // Tek bir ürünün teslim edildiğini işaretleme fonksiyonu (diğer ürünler ekranda kalır)
+        // Garson hesap ödendi butonuna bastığında o masaya ait TÜM aktif siparişler/talepler tamamlanır
+        window.resolvePayment = async (tableNo) => {
+            if(confirm(`Masa ${tableNo} hesabı ödendi olarak kapatılsın mı?`)) {
+                try {
+                    const events = activeOrders[tableNo] || [];
+                    await Promise.all(events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' })));
+                } catch(e) {
+                    alert("İşlem sırasında hata oluştu.");
+                }
+            }
+        };
+
         window.markItemServed = async (orderId, itemIndex) => {
             try {
                 const orderRef = doc(db, "orders", orderId);
                 const orderSnap = await getDoc(orderRef);
                 if(orderSnap.exists()) {
                     let items = orderSnap.data().items || [];
-                    items[itemIndex].served = true; // Sadece bu ürünü teslim edildi işaretle
-
-                    // Eğer siparişteki TÜM ürünler teslim edildiyse, siparişi komple completed yapabiliriz veya bırakabiliriz.
-                    let allServed = items.every(i => i.ready === true && i.served === true);
-                    let updateData = { items: items };
-                    if(allServed) {
-                        updateData.status = 'completed';
-                    }
-
-                    await updateDoc(orderRef, updateData);
+                    items[itemIndex].served = true;
+                    await updateDoc(orderRef, { items: items });
                 }
             } catch(e) {
-                alert("İşlem sırasında hata oluştu.");
+                alert("Hata oluştu.");
             }
         };
 
@@ -276,7 +289,7 @@
             try {
                 await updateDoc(doc(db, "orders", orderId), { status: 'completed' });
             } catch(e) {
-                alert("İşlem sırasında hata oluştu.");
+                alert("Hata oluştu.");
             }
         };
 
@@ -289,18 +302,24 @@
             for(let i = 1; i <= currentTableCount; i++) {
                 const events = activeOrders[i] || [];
                 let statusClass = 'table-empty', statusText = 'Boş';
+                let tableTotalPrice = 0;
                 
                 const hasWaiterCall = events.some(e => e.type === 'waiter');
+                const paymentRequested = events.some(e => e.type === 'payment_request');
                 const orderEvents = events.filter(e => e.type === 'order');
                 
+                orderEvents.forEach(ev => { tableTotalPrice += Number(ev.totalPrice || 0); });
+
                 let hasOrder = orderEvents.length > 0;
-                // Masadaki tüm ürünler hazır ve teslim edildiyse veya hepsi hazırsa duruma göre renklendir
-                let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true && item.served === true));
+                let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true));
                 let someItemReady = hasOrder && orderEvents.some(ev => ev.items && ev.items.some(item => item.ready === true && item.served !== true));
 
-                if(allItemsReady) {
-                    statusClass = 'table-empty'; 
-                    statusText = 'Boş / Teslim Edildi'; 
+                if(paymentRequested) {
+                    statusClass = 'table-payment';
+                    statusText = '💳 Hesap İstendi';
+                } else if(allItemsReady) {
+                    statusClass = 'table-ready'; 
+                    statusText = '✅ Tümü Hazır'; 
                 } else if(someItemReady) {
                     statusClass = 'table-ready'; 
                     statusText = '✅ Hazır Ürün var';
@@ -312,7 +331,15 @@
                     statusText = '🔔 Çağrı'; 
                 }
 
-                grid.innerHTML += `<div class="table-card ${statusClass}" onclick="window.handleTableClick(${i})">Masa ${i}<div class="table-status">${statusText}</div></div>`;
+                let priceHtml = tableTotalPrice > 0 ? `<div class="table-price-tag">${tableTotalPrice} TL</div>` : '';
+
+                grid.innerHTML += `
+                    <div class="table-card ${statusClass}" onclick="window.handleTableClick(${i})">
+                        Masa ${i}
+                        <div class="table-status">${statusText}</div>
+                        ${priceHtml}
+                    </div>
+                `;
             }
         }
 
@@ -327,13 +354,16 @@
             const modal = document.getElementById('tableActionModal'), content = document.getElementById('actionModalContent');
             document.getElementById('actionModalTitle').innerText = `Masa ${tableNo} Aktif Durum`;
             let html = '';
+            let totalTablePrice = 0;
             events.forEach(ev => {
                 if(ev.type === 'waiter') html += `<div class="order-list-item" style="border-left-color: var(--warning);">🔔 Garson Çağrıldı!</div>`;
+                else if(ev.type === 'payment_request') html += `<div class="order-list-item" style="border-left-color: var(--info);">💳 Hesap İstendi!</div>`;
                 else if(ev.type === 'order') {
+                    totalTablePrice += Number(ev.totalPrice || 0);
                     let itemListHtml = '<ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 13px;">';
                     if (ev.items) {
                         ev.items.forEach(item => {
-                            let statusBadge = item.served ? '<span style="color:var(--success); font-weight:bold;">(Teslim Edildi)</span>' : (item.ready ? '<span style="color:var(--success);">(Hazır)</span>' : '<span style="color:var(--text-muted);">(Hazırlanıyor)</span>');
+                            let statusBadge = item.served ? '<span style="color:var(--success);">(Teslim)</span>' : (item.ready ? '<span style="color:var(--success);">(Hazır)</span>' : '<span style="color:var(--text-muted);">(Hazırlanıyor)</span>');
                             itemListHtml += `<li>${item.name} - ${item.price} TL ${statusBadge}</li>`;
                         });
                     }
@@ -341,7 +371,8 @@
                     html += `<div class="order-list-item"><strong>🛒 Sipariş:</strong> Toplam ${ev.totalPrice} TL${itemListHtml}</div>`;
                 }
             });
-            content.innerHTML = html; modal.style.display = 'flex';
+            content.innerHTML = html + `<hr><h4 style="margin:10px 0;">Toplam Tutar: ${totalTablePrice} TL</h4>`; 
+            modal.style.display = 'flex';
         }
 
         document.getElementById('closeActionBtn').onclick = () => document.getElementById('tableActionModal').style.display = 'none';
@@ -349,12 +380,12 @@
         
         document.getElementById('clearTableBtn').onclick = async () => {
             const btn = document.getElementById('clearTableBtn'), events = activeOrders[currentTableNo] || [];
-            btn.innerText = "Temizleniyor...";
+            btn.innerText = "İşleniyor...";
             try {
                 await Promise.all(events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' })));
                 document.getElementById('tableActionModal').style.display = 'none';
             } catch (e) { alert("Hata oluştu."); }
-            btn.innerText = "🧹 Masayı Temizle (Hesabı Kapat)";
+            btn.innerText = "💳 Hesap Ödendi (Masayı Kapat)";
         };
 
         function openMenuForTable(tableNo) {
