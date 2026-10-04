@@ -27,10 +27,11 @@
 
         .header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; flex-wrap: wrap; gap: 10px; }
         .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn { padding: 8px 14px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; }
         .btn-red { background: #c23616; }
         .btn-danger { background: var(--danger); }
-        .btn-edit { background: #e1b12c; color: white; margin-right: 5px; }
+        .btn-edit { background: #e1b12c; color: white; }
+        .btn-success { background: var(--success); color: white; }
         .btn-code { background: var(--code-bg); color: white; }
         .btn-cancel { background: var(--muted); display: none; margin-left: 10px; }
         
@@ -45,22 +46,20 @@
         .modal-content textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 13px; box-sizing: border-box; resize: vertical; }
 
         table { width: 100%; background: white; border-collapse: collapse; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
         th { background: #f1f2f6; }
         td img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
 
         /* Masa Grid Stilleri */
-        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-top: 20px; }
-        .table-card { height: 130px; background: white; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; }
-        .table-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; margin-bottom: 30px; }
+        .table-card { height: 110px; background: white; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; }
+        .table-card:hover { transform: translateY(-3px); }
         .table-empty { border-color: #dcdde1; color: var(--muted); }
         .table-waiter { background: var(--edit); color: white; border-color: var(--edit); }
         .table-order { background: var(--primary); color: white; border-color: var(--primary); }
-        .table-status { font-size: 0.8rem; font-weight: 400; margin-top: 8px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; }
+        .table-status { font-size: 0.75rem; font-weight: 400; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 3px 8px; border-radius: 20px; }
         
-        .order-list-item { background: #f1f2f6; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
-        
-        /* İstatistik Kartları */
+        .section-title { font-size: 1.2rem; font-weight: 600; margin-top: 30px; margin-bottom: 15px; color: var(--dark); border-bottom: 2px solid #ddd; padding-bottom: 5px; }
         .stats-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-top: 20px; }
     </style>
 </head>
@@ -90,13 +89,13 @@
         </div>
     </div>
 
-    <!-- MASA DETAY MODALI -->
+    <!-- MASA DETAY MODALI (Opsiyonel alternatif tıklandığında açılır) -->
     <div id="tableDetailModal">
         <div class="modal-content">
             <h3 id="detailTableTitle">Masa Detayı</h3>
-            <div id="tableDetailContent" style="margin: 15px 0; min-height: 100px;"></div>
+            <div id="tableDetailContent" style="margin: 15px 0; min-height: 80px;"></div>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button id="completeOrdersBtn" class="btn btn-edit" style="display:none;">Siparişleri Tamamlandı İşaretle</button>
+                <button id="completeOrdersBtn" class="btn btn-success" style="display:none;">Tümünü Tamamla</button>
                 <button id="closeDetailModalBtn" class="btn btn-cancel" style="display:inline-block;">Kapat</button>
             </div>
         </div>
@@ -170,13 +169,30 @@
             <div class="header">
                 <h2>Masa Yönetimi</h2>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="number" id="tableCountInput" placeholder="Masa Sayısı" style="padding:10px; border:1px solid #ddd; border-radius:5px; width:120px;" min="1">
+                    <input type="number" id="tableCountInput" placeholder="Masa Sayısı" style="padding:8px; border:1px solid #ddd; border-radius:5px; width:100px;" min="1">
                     <button id="saveTableCountBtn" class="btn">Sayısı Güncelle</button>
                     <button class="btn btn-red logout-trigger" style="margin-left: 15px;">Çıkış Yap</button>
                 </div>
             </div>
-            <p style="font-size: 14px; color: var(--muted); margin-top: -10px;">Sipariş veren veya garson çağıran masalar anlık renklenecektir.</p>
-            <div id="tableGrid" class="table-grid"></div>
+            
+            <div class="table-grid" id="tableGrid"></div>
+
+            <!-- ANLIK SİPARİŞ VE ÇAĞRI LİSTESİ (SATIR SATIR) -->
+            <div class="section-title">📋 Aktif Siparişler ve Garson Çağrıları (Canlı Takip)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Masa No</th>
+                        <th>İşlem / Durum</th>
+                        <th>İçerik (Ne İstendi?)</th>
+                        <th>Tutar / Saat</th>
+                        <th>İşlem Yap</th>
+                    </tr>
+                </thead>
+                <tbody id="liveOrdersTableBody">
+                    <tr><td colspan="5" style="text-align:center; color:var(--muted);">Aktif sipariş veya çağrı bulunmuyor.</td></tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- 3. İSTATİSTİKLER VE RAPORLAR -->
@@ -186,7 +202,6 @@
                 <button class="btn btn-red logout-trigger">Çıkış Yap</button>
             </div>
             <div class="stats-card">
-                <p style="color: var(--muted); margin-top: 0;">Müşterilerin ve garsonların sisteme girdiği tüm siparişlerin ürün bazlı analiz özeti:</p>
                 <table>
                     <thead>
                         <tr><th>Ürün Adı</th><th>Toplam Satış Adedi</th><th>Toplam Ciro Katkısı</th></tr>
@@ -232,7 +247,7 @@
                     loadAdminMenu();
                 } else {
                     signOut(auth);
-                    alert("Erişim Engellendi: Bu panele sadece yöneticiler girebilir!");
+                    alert("Erişim Engellendi!");
                 }
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
@@ -240,7 +255,6 @@
             }
         });
 
-        // Sekme Geçişleri
         const tabs = [
             { btn: 'tab-products', view: 'view-products' },
             { btn: 'tab-tables', view: 'view-tables' },
@@ -276,24 +290,50 @@
             }
         });
 
-        // Siparişleri ve İstatistikleri Dinleme
         onSnapshot(collection(db, "orders"), (snapshot) => {
             activeOrders = {};
-            let productStats = {}; // Kim ne almış analizi için
+            let productStats = {}; 
+            let liveListHtml = '';
 
             snapshot.forEach(d => {
                 const data = d.data();
+                const id = d.id;
+
                 if(data.status !== 'completed') {
                     if(!activeOrders[data.tableNo]) activeOrders[data.tableNo] = [];
-                    activeOrders[data.tableNo].push({ id: d.id, ...data });
+                    activeOrders[data.tableNo].push({ id, ...data });
+
+                    // Canlı tablo satırları oluşturma
+                    let timeStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                    
+                    if(data.type === 'waiter') {
+                        liveListHtml += `<tr>
+                            <td><strong>Masa ${data.tableNo}</strong></td>
+                            <td><span style="background:var(--edit); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔔 Garson Çağrısı</span></td>
+                            <td>Masa garson çağırıyor.</td>
+                            <td>${timeStr}</td>
+                            <td><button class="btn btn-success" onclick="window.completeSingleOrder('${id}')">Tamamla / Kaldır</button></td>
+                        </tr>`;
+                    } else if(data.type === 'order') {
+                        let itemsText = '<ul style="margin:0; padding-left:15px;">';
+                        if(data.items) {
+                            data.items.forEach(i => itemsText += `<li>${i.name} (${i.price} TL)</li>`);
+                        }
+                        itemsText += '</ul>';
+
+                        liveListHtml += `<tr>
+                            <td><strong>Masa ${data.tableNo}</strong></td>
+                            <td><span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🛒 Sipariş</span></td>
+                            <td>${itemsText}</td>
+                            <td><b>${data.totalPrice} TL</b><br><small>${timeStr}</small></td>
+                            <td><button class="btn btn-success" onclick="window.completeSingleOrder('${id}')">Servis Edildi / Bitir</button></td>
+                        </tr>`;
+                    }
                 }
 
-                // İstatistik hesaplama (Tüm siparişler üzerinden)
                 if(data.type === 'order' && data.items) {
                     data.items.forEach(item => {
-                        if(!productStats[item.name]) {
-                            productStats[item.name] = { count: 0, revenue: 0 };
-                        }
+                        if(!productStats[item.name]) productStats[item.name] = { count: 0, revenue: 0 };
                         productStats[item.name].count += 1;
                         productStats[item.name].revenue += Number(item.price || 0);
                     });
@@ -302,7 +342,19 @@
 
             renderTables();
             renderStats(productStats);
+            
+            const liveBody = document.getElementById('liveOrdersTableBody');
+            liveBody.innerHTML = liveListHtml || '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Aktif sipariş veya çağrı bulunmuyor.</td></tr>';
         });
+
+        // Tek bir siparişi veya çağrıyı doğrudan listeden bitirme fonksiyonu
+        window.completeSingleOrder = async (orderId) => {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { status: 'completed' });
+            } catch(e) {
+                alert("İşlem yapılırken hata oluştu.");
+            }
+        };
 
         function renderTables() {
             const grid = document.getElementById('tableGrid');
@@ -325,17 +377,13 @@
             const sortedProducts = Object.entries(stats).sort((a, b) => b[1].count - a[1].count);
 
             if(sortedProducts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--muted);">Henüz hiç satış yapılmadı.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--muted);">Henüz satış yok.</td></tr>';
                 return;
             }
 
             let html = '';
             sortedProducts.forEach(([name, data]) => {
-                html += `<tr>
-                    <td><strong>${name}</strong></td>
-                    <td><span style="color:var(--primary); font-weight:600;">${data.count} Adet</span></td>
-                    <td>${data.revenue} TL</td>
-                </tr>`;
+                html += `<tr><td><strong>${name}</strong></td><td><span style="color:var(--primary); font-weight:600;">${data.count} Adet</span></td><td>${data.revenue} TL</td></tr>`;
             });
             tbody.innerHTML = html;
         }
@@ -347,41 +395,29 @@
             document.getElementById('detailTableTitle').innerText = `Masa ${tableNo} Detayı`;
             
             if(events.length === 0) {
-                content.innerHTML = '<p style="color:var(--muted); text-align:center;">Bu masada aktif işlem yok.</p>';
+                content.innerHTML = '<p style="color:var(--muted); text-align:center;">Aktif işlem yok.</p>';
                 document.getElementById('completeOrdersBtn').style.display = 'none';
             } else {
                 let html = '';
                 events.forEach(ev => {
-                    if(ev.type === 'waiter') {
-                        html += `<div class="order-list-item" style="border-left: 4px solid var(--edit);">🔔 Garson Çağrıldı!</div>`;
-                    } else if(ev.type === 'order') {
-                        let itemListHtml = '<ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 14px;">';
-                        if (ev.items) ev.items.forEach(i => itemListHtml += `<li>${i.name} - <b>${i.price} TL</b></li>`);
-                        itemListHtml += '</ul>';
-                        html += `<div class="order-list-item" style="border-left: 4px solid var(--primary);">
-                            <strong>🛒 Sipariş:</strong> Toplam ${ev.totalPrice} TL ${itemListHtml}
-                        </div>`;
+                    if(ev.type === 'waiter') html += `<div style="margin-bottom:8px;">🔔 Garson Çağrıldı</div>`;
+                    else if(ev.type === 'order') {
+                        html += `<div>🛒 Toplam ${ev.totalPrice} TL</div>`;
                     }
                 });
                 content.innerHTML = html;
                 document.getElementById('completeOrdersBtn').style.display = 'inline-block';
-                document.getElementById('completeOrdersBtn').onclick = () => completeTableOrders(events);
+                document.getElementById('completeOrdersBtn').onclick = async () => {
+                    await Promise.all(events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' })));
+                    modal.style.display = 'none';
+                };
             }
             modal.style.display = 'flex';
         };
 
         document.getElementById('closeDetailModalBtn').onclick = () => document.getElementById('tableDetailModal').style.display = 'none';
 
-        async function completeTableOrders(events) {
-            document.getElementById('completeOrdersBtn').innerText = "İşleniyor...";
-            try {
-                await Promise.all(events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' })));
-                document.getElementById('tableDetailModal').style.display = 'none';
-            } catch (e) { alert("Hata oluştu."); }
-            document.getElementById('completeOrdersBtn').innerText = "Siparişleri Tamamlandı İşaretle";
-        }
-
-        // Ürün Yönetimi Yardımcıları
+        // Ürün Yönetimi Kodları
         const codeModal = document.getElementById('codeModal');
         document.getElementById('openCodeModalBtn').onclick = () => codeModal.style.display = 'flex';
         document.getElementById('closeModalBtn').onclick = () => codeModal.style.display = 'none';
@@ -404,7 +440,7 @@
         };
 
         document.getElementById('deleteAllBtn').onclick = async () => {
-            if(confirm("Tüm ürünler silinecek! Emin misiniz?")) {
+            if(confirm("Tüm ürünler silinecek!")) {
                 const snap = await getDocs(collection(db, "products"));
                 await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "products", d.id))));
                 loadAdminMenu();
@@ -450,7 +486,7 @@
                 const item = d.data();
                 tbody.innerHTML += `<tr>
                     <td><img src="${item.imageUrl || ''}"></td><td>${item.name}</td><td>${item.category}</td><td>${item.price} TL</td>
-                    <td><button class="btn btn-edit btn-sm" onclick="editProduct('${d.id}')">Düzenle</button><button class="btn btn-red btn-sm" onclick="deleteProduct('${d.id}')">Sil</option></td>
+                    <td><button class="btn btn-edit btn-sm" onclick="editProduct('${d.id}')">Düzenle</button> <button class="btn btn-red btn-sm" onclick="deleteProduct('${d.id}')">Sil</button></td>
                 </tr>`;
             });
         }
