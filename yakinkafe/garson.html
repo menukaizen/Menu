@@ -8,29 +8,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root { --primary-color: #273c75; --accent: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 90px; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 120px; }
         
-        /* GİRİŞ EKRANI STİLLERİ */
+        /* GİRİŞ EKRANI */
         #login-screen { position: fixed; width: 100%; height: 100%; background: var(--primary-color); display: flex; justify-content: center; align-items: center; z-index: 3000; }
         .login-box { background: white; padding: 40px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .login-box h2 { margin-top: 0; color: var(--primary-color); }
-        .login-box input { width: 100%; margin-top: 15px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.2s; font-family: inherit; }
-        .login-box input:focus { border-color: var(--primary-color); }
+        .login-box input { width: 100%; margin-top: 15px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; outline: none; font-family: inherit; }
         .login-box button { width: 100%; margin-top: 20px; padding: 15px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 1.1rem; }
         
-        /* ANA UYGULAMA GİZLİ BAŞLAR */
         #main-app { display: none; }
 
-        #loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #dfe4ea; border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .loaded-hide { opacity: 0; pointer-events: none; }
-        
         header { background-color: var(--primary-color); color: white; padding: 15px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
         .header-content { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
         .header-content h1 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; flex-grow: 1; text-align: center; }
         
-        .header-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
+        .header-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.85rem; }
         .back-btn { visibility: hidden; }
 
         .view-section { display: none; animation: fadeIn 0.3s ease; }
@@ -39,12 +32,22 @@
 
         /* Masalar */
         .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; max-width: 800px; margin: 20px auto; padding: 0 15px; }
-        .table-card { height: 110px; background: white; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; }
+        .table-card { height: 110px; background: white; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
         .table-empty { border-color: #dcdde1; color: var(--text-main); }
         .table-order { background: var(--accent); color: white; border-color: var(--accent); }
-        .table-waiter { background: var(--warning); color: white; border-color: var(--warning); }
+        .table-waiter { background: var(--warning); color: white; border-color: var(--warning); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
         .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
         
+        /* Alt Kısım Canlı Uyarı Paneli (Masa X Çağırdı / Hazır Ürünler) */
+        .live-notifications-panel { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+        .notif-card { background: white; border-left: 5px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
+        .notif-card.order-ready { border-left-color: var(--success); }
+        .notif-info h4 { margin: 0 0 5px 0; font-size: 1rem; color: var(--text-main); }
+        .notif-info p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+        
+        .btn-serve { background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+
         /* Menü */
         .menu-container { max-width: 800px; margin: 10px auto; padding: 0 15px; }
         .category-title { font-size: 1.3rem; font-weight: 600; padding-bottom: 8px; margin-top: 20px; margin-bottom: 15px; color: var(--text-main); border-bottom: 2px solid #ddd; }
@@ -54,16 +57,15 @@
         .item-content { padding-left: 12px; flex-grow: 1; padding-right: 45px; }
         .item-title { margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600; }
         .item-price { color: var(--accent); font-weight: 600; font-size: 0.95rem; }
-        .add-to-cart-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: var(--success); color: white; border: none; width: 40px; height: 40px; border-radius: 10px; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 8px rgba(76, 209, 55, 0.3); transition: 0.2s; }
+        .add-to-cart-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: var(--success); color: white; border: none; width: 40px; height: 40px; border-radius: 10px; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 8px rgba(76, 209, 55, 0.3); }
         
-        .floating-cart { position: fixed; bottom: 20px; right: 20px; left: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 15px; font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: pointer; display: flex; justify-content: space-between; align-items: center; z-index: 1000; transition: 0.3s; max-width: 500px; margin: 0 auto; }
+        .floating-cart { position: fixed; bottom: 20px; right: 20px; left: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 15px; font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: pointer; display: flex; justify-content: space-between; align-items: center; z-index: 1000; max-width: 500px; margin: 0 auto; }
         .cart-badge { background: var(--accent); color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; }
         
         /* Modallar */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; }
         #cartModal { flex-direction: column; justify-content: flex-end; }
-        .cart-content { background: white; width: 100%; max-height: 85vh; border-radius: 25px 25px 0 0; padding: 25px; box-sizing: border-box; display: flex; flex-direction: column; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .cart-content { background: white; width: 100%; max-height: 85vh; border-radius: 25px 25px 0 0; padding: 25px; box-sizing: border-box; display: flex; flex-direction: column; }
         .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px; margin-bottom: 15px; }
         .close-btn { background: #f1f2f6; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--text-main); display: flex; justify-content: center; align-items: center; }
         .cart-items { overflow-y: auto; flex-grow: 1; margin-bottom: 20px; padding-right: 5px; }
@@ -73,11 +75,9 @@
         .cart-item-price { color: var(--accent); font-size: 0.95rem; font-weight: 600; margin-top: 5px; }
         .remove-item { color: #e74c3c; background: none; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 5px 0 0 0; text-align: left; }
         .cart-total { display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; padding-top: 15px; border-top: 2px solid #f1f2f6; }
-        .btn-order { background: var(--success); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.2rem; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(76, 209, 55, 0.3); }
+        .btn-order { background: var(--success); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.2rem; font-weight: 600; cursor: pointer; width: 100%; }
         
-        .action-modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 25px rgba(0,0,0,0.2); animation: scaleIn 0.2s ease; }
-        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .action-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px; margin-bottom: 15px; }
+        .action-modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 25px rgba(0,0,0,0.2); }
         .order-list-item { background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.9rem; }
         .action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         .btn-clear { background: var(--text-muted); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 1rem; }
@@ -93,14 +93,12 @@
             <input type="email" id="email" placeholder="E-posta Adresi">
             <input type="password" id="password" placeholder="Şifre">
             <button id="loginBtn">Sisteme Gir</button>
-            <p id="errorMsg" style="color:#ffcccc; font-size:13px; display:none; margin-top:10px;">Giriş başarısız! Bilgileri kontrol edin.</p>
+            <p id="errorMsg" style="color:#ffcccc; font-size:13px; display:none; margin-top:10px;">Giriş başarısız!</p>
         </div>
     </div>
 
     <!-- ANA UYGULAMA -->
     <div id="main-app">
-        <div id="loader-wrapper"><div class="spinner"></div><div style="font-weight:500;">Bağlanıyor...</div></div>
-
         <header>
             <div class="header-content">
                 <button class="header-btn back-btn" id="backBtn">⬅ Geri</button>
@@ -109,9 +107,17 @@
             </div>
         </header>
 
-        <!-- 1. GÖRÜNÜM: MASALAR -->
+        <!-- 1. GÖRÜNÜM: MASALAR VE CANLI BİLDİRİMLER -->
         <div id="view-tables" class="view-section active">
             <div class="table-grid" id="tableGrid"></div>
+
+            <!-- GARSON İÇİN ANLIK BİLDİRİM PANELİ (ÇAĞRILAR VE HAZIR SİPARİŞLER) -->
+            <div class="live-notifications-panel">
+                <h3 style="font-size:1.1rem; color:var(--text-main); margin-bottom:10px;">🔔 Canlı Servis ve Çağrı Paneli</h3>
+                <div id="liveNotifContainer">
+                    <p style="color:var(--text-muted); font-size:0.9rem;">Aktif çağrı veya bekleyen bildirim yok.</p>
+                </div>
+            </div>
         </div>
 
         <!-- 2. GÖRÜNÜM: MENÜ -->
@@ -175,29 +181,20 @@
         let currentTableCount = 0;
         let activeOrders = {}; 
 
-        // --- GİRİŞ VE ÇIKIŞ İŞLEMLERİ ---
         document.getElementById('loginBtn').onclick = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(() => {
-                document.getElementById('errorMsg').style.display = 'block';
-            });
+            const e = document.getElementById('email').value, p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(() => document.getElementById('errorMsg').style.display = 'block');
         };
 
-        document.getElementById('logoutBtn').onclick = () => {
-            signOut(auth);
-        };
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
-        // KİMLİK DOĞRULAMA (SADECE GARSON)
         onAuthStateChanged(auth, user => {
             if (user) {
-                // Sadece Garson UID'si veya e-postası ise içeri al
                 if (user.uid === "z2S24PrVOWV9oiBreklIqRvhw1n2" || user.email === "garson@hotmail.com") {
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-app').style.display = 'block';
                     startApp(); 
                 } else {
-                    // Admin veya başkası girmeye çalışırsa at
                     signOut(auth);
                     alert("Erişim Engellendi: Bu panele sadece Garsonlar girebilir!");
                 }
@@ -207,9 +204,7 @@
             }
         });
 
-        // Uygulama sadece başarılı girişte başlar
         function startApp() {
-            // Masaları Dinle
             onSnapshot(doc(db, "settings", "general"), (docSnap) => {
                 if(docSnap.exists()) {
                     currentTableCount = docSnap.data().tableCount || 0;
@@ -217,28 +212,67 @@
                 }
             });
 
-            // Siparişleri Dinle
             onSnapshot(collection(db, "orders"), (snapshot) => {
                 activeOrders = {};
+                let notifHtml = '';
+
                 snapshot.forEach(d => {
                     const data = d.data();
+                    const id = d.id;
+
                     if(data.status !== 'completed') {
                         if(!activeOrders[data.tableNo]) activeOrders[data.tableNo] = [];
-                        activeOrders[data.tableNo].push({ id: d.id, ...data });
+                        activeOrders[data.tableNo].push({ id, ...data });
+
+                        // Alt panel için uyarılar oluşturma
+                        if(data.type === 'waiter') {
+                            notifHtml += `
+                                <div class="notif-card">
+                                    <div class="notif-info">
+                                        <h4>🔔 Masa ${data.tableNo} - Garson Çağrısı!</h4>
+                                        <p>Müşteri acil garson bekliyor.</p>
+                                    </div>
+                                    <button class="btn-serve" onclick="window.resolveOrder('${id}')">İlgilendim / Kapat</button>
+                                </div>
+                            `;
+                        } else if(data.type === 'order') {
+                            let itemsText = '';
+                            if(data.items) data.items.forEach(i => itemsText += `${i.name}, `);
+
+                            notifHtml += `
+                                <div class="notif-card order-ready">
+                                    <div class="notif-info">
+                                        <h4>🛒 Masa ${data.tableNo} - Sipariş Servis Bekliyor</h4>
+                                        <p>Ürünler: ${itemsText} (<b>${data.totalPrice} TL</b>)</p>
+                                    </div>
+                                    <button class="btn-serve" onclick="window.resolveOrder('${id}')">Servis Edildi</button>
+                                </div>
+                            `;
+                        }
                     }
                 });
+
                 renderTables();
+                document.getElementById('liveNotifContainer').innerHTML = notifHtml || '<p style="color:var(--text-muted); font-size:0.9rem;">Aktif çağrı veya bekleyen bildirim yok.</p>';
             });
 
-            loadMenu(); // Menüyü Yükle
+            loadMenu();
         }
 
-        // --- MASA YÖNETİMİ ---
+        // Garson bildirimi tamamlandığında siparişi 'completed' yapar
+        window.resolveOrder = async (orderId) => {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { status: 'completed' });
+            } catch(e) {
+                alert("İşlem sırasında hata oluştu.");
+            }
+        };
+
         function renderTables() {
             const grid = document.getElementById('tableGrid');
             grid.innerHTML = '';
             if(currentTableCount === 0) {
-                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center;">Masa ayarı yapılmamış.</p>'; return;
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align:center;">Masa sayısı belirlenmemiş.</p>'; return;
             }
             for(let i = 1; i <= currentTableCount; i++) {
                 const events = activeOrders[i] || [];
@@ -247,7 +281,7 @@
                 const hasWaiterCall = events.some(e => e.type === 'waiter');
 
                 if(hasOrder) { statusClass = 'table-order'; statusText = 'Dolu'; } 
-                else if(hasWaiterCall) { statusClass = 'table-waiter'; statusText = 'Çağrı'; }
+                else if(hasWaiterCall) { statusClass = 'table-waiter'; statusText = '🔔 Çağrı'; }
 
                 grid.innerHTML += `<div class="table-card ${statusClass}" onclick="window.handleTableClick(${i})">Masa ${i}<div class="table-status">${statusText}</div></div>`;
             }
@@ -304,7 +338,6 @@
             cart = []; updateCartUI(); document.getElementById('cartModal').style.display = 'none';
         };
 
-        // --- MENÜ VE SEPET ---
         async function loadMenu() {
             const container = document.getElementById('menuContainer');
             try {
@@ -325,12 +358,11 @@
                 }
                 container.innerHTML = htmlContent;
             } catch (error) { container.innerHTML = '<div style="text-align:center; padding:40px;">Bağlantı hatası.</div>'; }
-            document.getElementById('loader-wrapper').classList.add('loaded-hide');
         }
 
         window.addToCart = (productId) => {
             const product = productsData.find(p => p.id === productId);
-            if(product) { cart.push(product); updateCartUI(); const cartBtn = document.getElementById('cartBtn'); cartBtn.style.transform = 'scale(1.05)'; setTimeout(() => cartBtn.style.transform = 'scale(1)', 150); }
+            if(product) { cart.push(product); updateCartUI(); }
         };
         window.removeFromCart = (index) => { cart.splice(index, 1); updateCartUI(); };
 
