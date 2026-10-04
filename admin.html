@@ -106,7 +106,7 @@
         <div class="tabs">
             <button class="tab-btn active" id="tab-products">Ürün Yönetimi</button>
             <button class="tab-btn" id="tab-tables">Masalar ve Canlı Takip</button>
-            <button class="tab-btn" id="tab-stats">📊 Satış ve Ürün İstatistikleri</button>
+            <button class="tab-btn" id="tab-stats">📊 Ay Bazlı Satış İstatistikleri</button>
         </div>
 
         <!-- 1. ÜRÜN YÖNETİMİ -->
@@ -177,7 +177,6 @@
             
             <div class="table-grid" id="tableGrid"></div>
 
-            <!-- ANLIK SİPARİŞ VE ÇAĞRI LİSTESİ (SATIR SATIR) -->
             <div class="section-title">📋 Aktif Siparişler ve Garson Çağrıları (Canlı Takip)</div>
             <table>
                 <thead>
@@ -195,19 +194,53 @@
             </table>
         </div>
 
-        <!-- 3. İSTATİSTİKLER VE RAPORLAR -->
+        <!-- 3. AY BAZLI İSTATİSTİKLER VE MANUEL GİRİŞ -->
         <div id="view-stats" class="view-section">
             <div class="header">
-                <h2>En Çok Ne Sipariş Edildi?</h2>
+                <h2>Ay Bazlı Satış Yönetimi ve İstatistikler</h2>
                 <button class="btn btn-red logout-trigger">Çıkış Yap</button>
             </div>
+
+            <!-- Manuel Satış Ekleme / Güncelleme Kartı -->
+            <div class="form-card" style="grid-template-columns: 1fr 1fr 1fr auto; align-items: flex-end;">
+                <div class="form-group">
+                    <label>Ay Seçin</label>
+                    <select id="statMonth">
+                        <option value="Ocak">Ocak</option>
+                        <option value="Şubat">Şubat</option>
+                        <option value="Mart">Mart</option>
+                        <option value="Nisan">Nisan</option>
+                        <option value="Mayıs">Mayıs</option>
+                        <option value="Haziran">Haziran</option>
+                        <option value="Temmuz">Temmuz</option>
+                        <option value="Ağustos">Ağustos</option>
+                        <option value="Eylül">Eylül</option>
+                        <option value="Ekim">Ekim</option>
+                        <option value="Kasım">Kasım</option>
+                        <option value="Aralık">Aralık</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ürün Seçin</label>
+                    <select id="statProductSelect"></select>
+                </div>
+                <div class="form-group">
+                    <label>Satılan Adet</label>
+                    <input type="number" id="statQuantity" placeholder="Örn: 100" min="0">
+                </div>
+                <div class="form-group">
+                    <button id="saveStatBtn" class="btn" style="height: 42px;">Adedi Kaydet</button>
+                </div>
+            </div>
+
             <div class="stats-card">
+                <div class="section-title" style="margin-top:0;">Aylara Göre Ürün Satış Raporu</div>
                 <table>
                     <thead>
-                        <tr><th>Ürün Adı</th><th>Toplam Satış Adedi</th><th>Toplam Ciro Katkısı</th></tr>
+                        <tr><th>Ay</th><th>Ürün Adı</th><th>Satış Adedi</th><th>İşlem</th></tr>
                     </thead>
-                    <tbody id="statsTableBody">
-                        <tr><td colspan="3" style="text-align:center;">Veriler yükleniyor...</td></tr>
+                    <tbody id="monthlyStatsTableBody">
+                        <tr><td colspan="4" style="text-align:center;">Kayıtlı istatistik yok.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -245,6 +278,8 @@
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-app').style.display = 'block';
                     loadAdminMenu();
+                    loadProductsForStats();
+                    loadMonthlyStats();
                 } else {
                     signOut(auth);
                     alert("Erişim Engellendi!");
@@ -292,7 +327,6 @@
 
         onSnapshot(collection(db, "orders"), (snapshot) => {
             activeOrders = {};
-            let productStats = {}; 
             let liveListHtml = '';
 
             snapshot.forEach(d => {
@@ -311,16 +345,11 @@
                             <td><span style="background:var(--edit); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔔 Garson Çağrısı</span></td>
                             <td>Masa garson çağırıyor.</td>
                             <td>${timeStr}</td>
-                            <td>
-                                <button class="btn btn-success" onclick="window.updateOrderStatus('${id}', 'completed')">Tamamla</button>
-                                <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>
-                            </td>
+                            <td><button class="btn btn-success" onclick="window.updateOrderStatus('${id}', 'completed')">Tamamla</button> <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button></td>
                         </tr>`;
                     } else if(data.type === 'order') {
                         let itemsText = '<ul style="margin:0; padding-left:15px;">';
-                        if(data.items) {
-                            data.items.forEach(i => itemsText += `<li>${i.name} (${i.price} TL)</li>`);
-                        }
+                        if(data.items) data.items.forEach(i => itemsText += `<li>${i.name} (${i.price} TL)</li>`);
                         itemsText += '</ul>';
 
                         liveListHtml += `<tr>
@@ -328,37 +357,19 @@
                             <td><span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🛒 Sipariş</span></td>
                             <td>${itemsText}</td>
                             <td><b>${data.totalPrice} TL</b><br><small>${timeStr}</small></td>
-                            <td>
-                                <button class="btn btn-success" style="margin-bottom: 5px;" onclick="window.updateOrderStatus('${id}', 'completed')">Servis Edildi / Bitir</button><br>
-                                <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>
-                            </td>
+                            <td><button class="btn btn-success" style="margin-bottom: 5px;" onclick="window.updateOrderStatus('${id}', 'completed')">Servis Edildi / Bitir</button><br><button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button></td>
                         </tr>`;
                     }
-                }
-
-                if(data.type === 'order' && data.items) {
-                    data.items.forEach(item => {
-                        if(!productStats[item.name]) productStats[item.name] = { count: 0, revenue: 0 };
-                        productStats[item.name].count += 1;
-                        productStats[item.name].revenue += Number(item.price || 0);
-                    });
                 }
             });
 
             renderTables();
-            renderStats(productStats);
-            
             const liveBody = document.getElementById('liveOrdersTableBody');
             liveBody.innerHTML = liveListHtml || '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Aktif sipariş veya çağrı bulunmuyor.</td></tr>';
         });
 
-        // Siparişi tamamlama veya iptal etme ortak fonksiyonu
         window.updateOrderStatus = async (orderId, newStatus) => {
-            try {
-                await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-            } catch(e) {
-                alert("İşlem sırasında hata oluştu.");
-            }
+            try { await updateDoc(doc(db, "orders", orderId), { status: newStatus }); } catch(e) { alert("Hata oluştu."); }
         };
 
         function renderTables() {
@@ -377,21 +388,69 @@
             }
         }
 
-        function renderStats(stats) {
-            const tbody = document.getElementById('statsTableBody');
-            const sortedProducts = Object.entries(stats).sort((a, b) => b[1].count - a[1].count);
+        // --- MANUEL AY BAZLI İSTATİSTİK SİSTEMİ ---
+        async function loadProductsForStats() {
+            const select = document.getElementById('statProductSelect');
+            const snap = await getDocs(collection(db, "products"));
+            select.innerHTML = '';
+            snap.forEach(d => {
+                const p = d.data();
+                select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+            });
+        }
 
-            if(sortedProducts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--muted);">Henüz satış yok.</td></tr>';
+        document.getElementById('saveStatBtn').onclick = async () => {
+            const month = document.getElementById('statMonth').value;
+            const productName = document.getElementById('statProductSelect').value;
+            const quantity = parseInt(document.getElementById('statQuantity').value);
+
+            if(!productName || isNaN(quantity)) return alert("Lütfen ürün seçin ve geçerli bir adet girin!");
+
+            try {
+                // Firestore'da 'monthly_stats' koleksiyonuna ay_ürün adı ID'si ile kaydediyoruz (böylece güncellenebilir)
+                const docId = `${month}_${productName}`;
+                await setDoc(doc(db, "monthly_stats", docId), {
+                    month: month,
+                    productName: productName,
+                    quantity: quantity,
+                    updatedAt: new Date()
+                });
+                alert(`${month} ayı için ${productName} satış adedi (${quantity}) başarıyla kaydedildi!`);
+                document.getElementById('statQuantity').value = '';
+                loadMonthlyStats();
+            } catch(e) {
+                alert("İstatistik kaydedilirken hata oluştu.");
+            }
+        };
+
+        async function loadMonthlyStats() {
+            const tbody = document.getElementById('monthlyStatsTableBody');
+            const snap = await getDocs(collection(db, "monthly_stats"));
+            
+            if(snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--muted);">Kayıtlı istatistik yok.</td></tr>';
                 return;
             }
 
             let html = '';
-            sortedProducts.forEach(([name, data]) => {
-                html += `<tr><td><strong>${name}</strong></td><td><span style="color:var(--primary); font-weight:600;">${data.count} Adet</span></td><td>${data.revenue} TL</td></tr>`;
+            snap.forEach(d => {
+                const s = d.data();
+                html += `<tr>
+                    <td><b>${s.month}</b></td>
+                    <td>${s.productName}</td>
+                    <td><span style="color:var(--primary); font-weight:600;">${s.quantity} Adet</span></td>
+                    <td><button class="btn btn-red btn-sm" onclick="window.deleteStat('${d.id}')">Sil</button></td>
+                </tr>`;
             });
             tbody.innerHTML = html;
         }
+
+        window.deleteStat = async (statId) => {
+            if(confirm("Bu istatistik kaydını silmek istediğinize emin misiniz?")) {
+                await deleteDoc(doc(db, "monthly_stats", statId));
+                loadMonthlyStats();
+            }
+        };
 
         window.openTableDetail = (tableNo) => {
             const modal = document.getElementById('tableDetailModal');
@@ -406,9 +465,7 @@
                 let html = '';
                 events.forEach(ev => {
                     if(ev.type === 'waiter') html += `<div style="margin-bottom:8px;">🔔 Garson Çağrıldı</div>`;
-                    else if(ev.type === 'order') {
-                        html += `<div>🛒 Toplam ${ev.totalPrice} TL</div>`;
-                    }
+                    else if(ev.type === 'order') html += `<div>🛒 Toplam ${ev.totalPrice} TL</div>`;
                 });
                 content.innerHTML = html;
                 document.getElementById('completeOrdersBtn').style.display = 'inline-block';
@@ -441,7 +498,7 @@
                 count++;
             }
             status.innerText = `${count} ürün eklendi!`;
-            setTimeout(() => { codeModal.style.display = 'none'; status.innerText = ''; document.getElementById('bulkCodeInput').value = ''; loadAdminMenu(); }, 1500);
+            setTimeout(() => { codeModal.style.display = 'none'; status.innerText = ''; document.getElementById('bulkCodeInput').value = ''; loadAdminMenu(); loadProductsForStats(); }, 1500);
         };
 
         document.getElementById('deleteAllBtn').onclick = async () => {
@@ -477,7 +534,7 @@
                 } else {
                     await addDoc(collection(db, "products"), { name, category, oldPrice, price, desc, imageUrl, createdAt: new Date() });
                 }
-                resetForm(); loadAdminMenu(); msg.innerText = "Başarılı!"; setTimeout(() => msg.innerText = '', 2000);
+                resetForm(); loadAdminMenu(); loadProductsForStats(); msg.innerText = "Başarılı!"; setTimeout(() => msg.innerText = '', 2000);
             } catch (e) { alert("Hata oluştu."); }
             btn.innerText = "Ürünü Kaydet";
         };
@@ -526,10 +583,8 @@
         }
 
         window.deleteProduct = async (id) => {
-            if(confirm("Silmek istiyor musunuz?")) { await deleteDoc(doc(db, "products", id)); loadAdminMenu(); }
+            if(confirm("Silmek istiyor musunuz?")) { await deleteDoc(doc(db, "products", id)); loadAdminMenu(); loadProductsForStats(); }
         };
     </script>
-</body>
-</html>
 </body>
 </html>
