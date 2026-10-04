@@ -7,13 +7,24 @@
     <title>Yönetim Paneli</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #e84118; --bg: #f5f6fa; --dark: #2f3640; --edit: #fbc531; --code-bg: #273c75; --danger: #eb2f06; }
+        :root { --primary: #e84118; --bg: #f5f6fa; --dark: #2f3640; --edit: #fbc531; --code-bg: #273c75; --danger: #eb2f06; --muted: #7f8fa6; }
         body { font-family: 'Poppins', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
         #login-screen { position: fixed; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-box { background: white; padding: 40px; border-radius: 10px; width: 300px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .login-box input, .login-box button { width: 100%; margin-top: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
         .login-box button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        
         #main-app { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
+        
+        /* Sekme (Tab) Stilleri */
+        .tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .tab-btn { padding: 10px 20px; border: none; background: transparent; font-size: 16px; font-weight: 600; cursor: pointer; color: var(--muted); transition: 0.3s; }
+        .tab-btn:hover { color: var(--dark); }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); margin-bottom: -12px; }
+        
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
         .header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; flex-wrap: wrap; gap: 10px; }
         .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500; }
@@ -21,22 +32,33 @@
         .btn-danger { background: var(--danger); }
         .btn-edit { background: #e1b12c; color: white; margin-right: 5px; }
         .btn-code { background: var(--code-bg); color: white; }
-        .btn-cancel { background: #7f8fa6; display: none; margin-left: 10px; }
+        .btn-cancel { background: var(--muted); display: none; margin-left: 10px; }
+        
         .form-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; display: grid; gap: 15px; grid-template-columns: 1fr 1fr; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full { grid-column: span 2; }
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit; }
-        
         #imagePreview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; display: none; }
 
-        #codeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); }
+        #codeModal, #tableDetailModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto; }
         .modal-content textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 13px; box-sizing: border-box; resize: vertical; }
 
         table { width: 100%; background: white; border-collapse: collapse; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f1f2f6; }
         td img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
+
+        /* Masa Grid Stilleri */
+        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-top: 20px; }
+        .table-card { height: 130px; background: white; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; }
+        .table-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .table-empty { border-color: #dcdde1; color: var(--muted); }
+        .table-waiter { background: var(--edit); color: white; border-color: var(--edit); }
+        .table-order { background: var(--primary); color: white; border-color: var(--primary); }
+        .table-status { font-size: 0.8rem; font-weight: 400; margin-top: 8px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; }
+        
+        .order-list-item { background: #f1f2f6; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -56,7 +78,7 @@
         <div class="modal-content">
             <h3>Toplu Metin ile Ürün Ekle</h3>
             <p style="font-size: 13px; color: #7f8fa6;">
-                Her satıra bir ürün gelecek şekilde şu formatta yazın (Resimsiz eklenir, fotoğraflarını sonradan panodan yükleyebilirsiniz):<br>
+                Her satıra bir ürün gelecek şekilde şu formatta yazın:<br>
                 <b>Ürün Adı | Kategori | İndirimli Fiyat | Eski Fiyat | Açıklama</b>
             </p>
             <textarea id="bulkCodeInput" placeholder="Mantı | Makarnalar | 350 | 450 | Özel yoğurtlu ev mantısı"></textarea>
@@ -68,65 +90,105 @@
         </div>
     </div>
 
+    <!-- MASA DETAY PENCERESİ (Gelecek adımlar için hazırlandı) -->
+    <div id="tableDetailModal">
+        <div class="modal-content">
+            <h3 id="detailTableTitle">Masa Detayı</h3>
+            <div id="tableDetailContent" style="margin: 15px 0; min-height: 100px;">
+                <!-- Siparişler buraya gelecek -->
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="completeOrdersBtn" class="btn btn-edit" style="display:none;">Tümünü Tamamlandı İşaretle</button>
+                <button id="closeDetailModalBtn" class="btn btn-cancel" style="display:inline-block;">Kapat</button>
+            </div>
+        </div>
+    </div>
+
     <div id="main-app">
-        <div class="header">
-            <h2 id="formTitle">Yeni Ürün Ekle</h2>
-            <div class="header-btns">
-                <button id="openCodeModalBtn" class="btn btn-code">Kod ile Ekle</button>
-                <button id="deleteAllBtn" class="btn btn-danger">Hepsini Sil</button>
-                <button id="logoutBtn" class="btn btn-red">Çıkış Yap</button>
-            </div>
+        <!-- SEKME MENÜSÜ -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-products">Ürün Yönetimi</button>
+            <button class="tab-btn" id="tab-tables">Masalar ve Siparişler</button>
         </div>
 
-        <div class="form-card">
-            <input type="hidden" id="editProductId">
+        <!-- ÜRÜN YÖNETİMİ BÖLÜMÜ -->
+        <div id="view-products" class="view-section active">
+            <div class="header">
+                <h2 id="formTitle">Yeni Ürün Ekle</h2>
+                <div class="header-btns">
+                    <button id="openCodeModalBtn" class="btn btn-code">Kod ile Ekle</button>
+                    <button id="deleteAllBtn" class="btn btn-danger">Hepsini Sil</button>
+                    <button class="btn btn-red logout-trigger">Çıkış Yap</button>
+                </div>
+            </div>
 
-            <div class="form-group">
-                <label>Ürün Adı</label>
-                <input type="text" id="pName" placeholder="Örn: Lazanya">
+            <div class="form-card">
+                <input type="hidden" id="editProductId">
+
+                <div class="form-group">
+                    <label>Ürün Adı</label>
+                    <input type="text" id="pName" placeholder="Örn: Lazanya">
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select id="pCategory">
+                        <option>Başlangıçlar</option><option>Makarnalar</option><option>Risottolar</option><option>Yan Ürünler</option><option>Tatlılar</option><option>İçecekler</option><option>Sıcak İçecekler</option><option>Soğuk Kahveler</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Normal Fiyat (Üstü Çizili TL)</label>
+                    <input type="number" id="pOldPrice" placeholder="550">
+                </div>
+                <div class="form-group">
+                    <label>İndirimli Fiyat (Güncel TL)</label>
+                    <input type="number" id="pPrice" placeholder="440">
+                </div>
+                <div class="form-group full">
+                    <label>Açıklama</label>
+                    <textarea id="pDesc" rows="2" placeholder="İçindeki malzemeler..."></textarea>
+                </div>
+                <div class="form-group full">
+                    <label>Yemek Fotoğrafı Seç</label>
+                    <input type="file" id="pImageFile" accept="image/*">
+                    <img id="imagePreview" alt="Ön izleme">
+                </div>
+                <div class="form-group full" style="display: flex; align-items: center;">
+                    <button id="saveBtn" class="btn">Ürünü Kaydet</button>
+                    <button id="cancelBtn" class="btn btn-cancel">İptal</button>
+                    <p id="statusMsg" style="color:green; font-size:14px; margin-left: 15px;"></p>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Kategori</label>
-                <select id="pCategory">
-                    <option>Başlangıçlar</option><option>Makarnalar</option><option>Risottolar</option><option>Yan Ürünler</option><option>Tatlılar</option><option>İçecekler</option><option>Sıcak İçecekler</option><option>Soğuk Kahveler</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Normal Fiyat (Üstü Çizili TL)</label>
-                <input type="number" id="pOldPrice" placeholder="550">
-            </div>
-            <div class="form-group">
-                <label>İndirimli Fiyat (Güncel TL)</label>
-                <input type="number" id="pPrice" placeholder="440">
-            </div>
-            <div class="form-group full">
-                <label>Açıklama</label>
-                <textarea id="pDesc" rows="2" placeholder="İçindeki malzemeler..."></textarea>
-            </div>
-            <div class="form-group full">
-                <label>Yemek Fotoğrafı Seç</label>
-                <input type="file" id="pImageFile" accept="image/*">
-                <img id="imagePreview" alt="Ön izleme">
-            </div>
-            <div class="form-group full" style="display: flex; align-items: center;">
-                <button id="saveBtn" class="btn">Ürünü Kaydet</button>
-                <button id="cancelBtn" class="btn btn-cancel">İptal</button>
-                <p id="statusMsg" style="color:green; font-size:14px; margin-left: 15px;"></p>
-            </div>
+
+            <table>
+                <thead>
+                    <tr><th>Resim</th><th>İsim</th><th>Kategori</th><th>Fiyat</th><th>İşlem</th></tr>
+                </thead>
+                <tbody id="productTable"></tbody>
+            </table>
         </div>
 
-        <table>
-            <thead>
-                <tr><th>Resim</th><th>İsim</th><th>Kategori</th><th>Fiyat</th><th>İşlem</th></tr>
-            </thead>
-            <tbody id="productTable"></tbody>
-        </table>
+        <!-- MASALAR VE SİPARİŞLER BÖLÜMÜ -->
+        <div id="view-tables" class="view-section">
+            <div class="header">
+                <h2>Masa Yönetimi</h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="tableCountInput" placeholder="Masa Sayısı" style="padding:10px; border:1px solid #ddd; border-radius:5px; width:120px;" min="1">
+                    <button id="saveTableCountBtn" class="btn">Sayısı Güncelle</button>
+                    <button class="btn btn-red logout-trigger" style="margin-left: 15px;">Çıkış Yap</button>
+                </div>
+            </div>
+            
+            <p style="font-size: 14px; color: var(--muted); margin-top: -10px;">Sipariş veren veya garson çağıran masalar otomatik olarak renk değiştirecektir.</p>
+            
+            <!-- Masaların Listeleneceği Alan -->
+            <div id="tableGrid" class="table-grid"></div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
@@ -134,19 +196,22 @@
             projectId: "yakinkafe",
             storageBucket: "yakinkafe.firebasestorage.app",
             messagingSenderId: "706625633005",
-            appId: "1:706625633005:web:3d7efed129b2d0d895eae4",
-            measurementId: "G-THPJ9R183N"
+            appId: "1:706625633005:web:3d7efed129b2d0d895eae4"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // -- GİRİŞ & ÇIKIŞ İŞLEMLERİ --
         document.getElementById('loginBtn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => document.getElementById('errorMsg').style.display = 'block');
         };
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        
+        document.querySelectorAll('.logout-trigger').forEach(btn => {
+            btn.onclick = () => signOut(auth);
+        });
 
         onAuthStateChanged(auth, user => {
             if (user) {
@@ -159,11 +224,142 @@
             }
         });
 
+        // -- SEKME (TAB) GEÇİŞLERİ --
+        const tabProducts = document.getElementById('tab-products');
+        const tabTables = document.getElementById('tab-tables');
+        const viewProducts = document.getElementById('view-products');
+        const viewTables = document.getElementById('view-tables');
+
+        tabProducts.onclick = () => {
+            tabProducts.classList.add('active'); tabTables.classList.remove('active');
+            viewProducts.classList.add('active'); viewTables.classList.remove('active');
+        };
+        tabTables.onclick = () => {
+            tabTables.classList.add('active'); tabProducts.classList.remove('active');
+            viewTables.classList.add('active'); viewProducts.classList.remove('active');
+        };
+
+        // -- MASA VE SİPARİŞ YÖNETİMİ --
+        let currentTableCount = 0;
+        let activeOrders = {}; // Gelen sipariş ve çağrıları hafızada tutar
+
+        // 1. Masa Sayısını Kaydetme
+        document.getElementById('saveTableCountBtn').onclick = async () => {
+            const count = parseInt(document.getElementById('tableCountInput').value);
+            if(count > 0) {
+                await setDoc(doc(db, "settings", "general"), { tableCount: count }, { merge: true });
+                alert("Masa sayısı başarıyla güncellendi!");
+            } else {
+                alert("Geçerli bir masa sayısı girin.");
+            }
+        };
+
+        // 2. Ayarları ve Masa Sayısını Dinleme (Gerçek Zamanlı)
+        onSnapshot(doc(db, "settings", "general"), (docSnap) => {
+            if(docSnap.exists()) {
+                currentTableCount = docSnap.data().tableCount || 0;
+                document.getElementById('tableCountInput').value = currentTableCount;
+                renderTables();
+            }
+        });
+
+        // 3. Siparişleri ve Garson Çağrılarını Dinleme (Müşteri ekranı yapılınca buraya düşecek)
+        onSnapshot(collection(db, "orders"), (snapshot) => {
+            activeOrders = {};
+            snapshot.forEach(d => {
+                const data = d.data();
+                if(data.status !== 'completed') {
+                    if(!activeOrders[data.tableNo]) activeOrders[data.tableNo] = [];
+                    activeOrders[data.tableNo].push({ id: d.id, ...data });
+                }
+            });
+            renderTables();
+        });
+
+        // 4. Masaları Ekrana Çizme
+        function renderTables() {
+            const grid = document.getElementById('tableGrid');
+            grid.innerHTML = '';
+            
+            for(let i = 1; i <= currentTableCount; i++) {
+                const tableEvents = activeOrders[i] || [];
+                let statusClass = 'table-empty';
+                let statusText = 'Boş';
+                
+                const hasOrder = tableEvents.some(e => e.type === 'order');
+                const hasWaiterCall = tableEvents.some(e => e.type === 'waiter');
+
+                if(hasOrder) { 
+                    statusClass = 'table-order'; 
+                    statusText = 'Sipariş Var'; 
+                } else if(hasWaiterCall) { 
+                    statusClass = 'table-waiter'; 
+                    statusText = 'Garson Bekliyor'; 
+                }
+
+                grid.innerHTML += `
+                    <div class="table-card ${statusClass}" onclick="openTableDetail(${i})">
+                        Masa ${i}
+                        <div class="table-status">${statusText}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // 5. Masaya Tıklanınca Detayları Gösterme
+        window.openTableDetail = (tableNo) => {
+            const modal = document.getElementById('tableDetailModal');
+            const content = document.getElementById('tableDetailContent');
+            const events = activeOrders[tableNo] || [];
+            
+            document.getElementById('detailTableTitle').innerText = `Masa ${tableNo} Detayı`;
+            
+            if(events.length === 0) {
+                content.innerHTML = '<p style="color:#7f8fa6; text-align:center;">Bu masada şu an aktif bir işlem yok.</p>';
+                document.getElementById('completeOrdersBtn').style.display = 'none';
+            } else {
+                let html = '';
+                events.forEach(ev => {
+                    if(ev.type === 'waiter') {
+                        html += `<div class="order-list-item" style="border-left: 4px solid var(--edit);">🔔 Garson Çağrıldı! (Saat: ${new Date(ev.createdAt?.toDate()).toLocaleTimeString()})</div>`;
+                    } else if(ev.type === 'order') {
+                        html += `<div class="order-list-item" style="border-left: 4px solid var(--primary);">
+                            <strong>🛒 Yeni Sipariş:</strong> Toplam ${ev.totalPrice} TL
+                            <p style="font-size:13px; margin:5px 0 0 0;">(Müşteri ekranından sepet bağlandığında ürünler burada listelenecek)</p>
+                        </div>`;
+                    }
+                });
+                content.innerHTML = html;
+                document.getElementById('completeOrdersBtn').style.display = 'inline-block';
+                document.getElementById('completeOrdersBtn').onclick = () => completeTableOrders(events);
+            }
+            
+            modal.style.display = 'flex';
+        };
+
+        document.getElementById('closeDetailModalBtn').onclick = () => {
+            document.getElementById('tableDetailModal').style.display = 'none';
+        };
+
+        // 6. Masadaki Siparişleri / Çağrıları Tamamlandı Olarak İşaretleme
+        async function completeTableOrders(events) {
+            document.getElementById('completeOrdersBtn').innerText = "İşleniyor...";
+            try {
+                const updatePromises = events.map(ev => updateDoc(doc(db, "orders", ev.id), { status: 'completed' }));
+                await Promise.all(updatePromises);
+                document.getElementById('tableDetailModal').style.display = 'none';
+            } catch (e) {
+                alert("Hata oluştu.");
+            }
+            document.getElementById('completeOrdersBtn').innerText = "Tümünü Tamamlandı İşaretle";
+        }
+
+
+        // -- ÜRÜN YÖNETİMİ KODLARI (Aynı Bırakıldı) --
         const codeModal = document.getElementById('codeModal');
         document.getElementById('openCodeModalBtn').onclick = () => codeModal.style.display = 'flex';
         document.getElementById('closeModalBtn').onclick = () => codeModal.style.display = 'none';
 
-        // Toplu Kod İşleme (Resimsiz saf metin aktarımı)
         document.getElementById('processBulkBtn').onclick = async () => {
             const text = document.getElementById('bulkCodeInput').value.trim();
             const status = document.getElementById('bulkStatusMsg');
@@ -177,34 +373,18 @@
                 for (let line of lines) {
                     if(!line.includes('|')) continue;
                     const parts = line.split('|').map(p => p.trim());
-                    const name = parts[0] || "Ürün";
-                    const category = parts[1] || "Makarnalar";
-                    const price = parts[2] || "100";
-                    const oldPrice = parts[3] || "";
-                    const desc = parts[4] || "";
-
                     await addDoc(collection(db, "products"), {
-                        name, category, price, oldPrice, desc, 
-                        imageUrl: "", 
-                        createdAt: new Date()
+                        name: parts[0] || "Ürün", category: parts[1] || "Makarnalar", 
+                        price: parts[2] || "100", oldPrice: parts[3] || "", desc: parts[4] || "", 
+                        imageUrl: "", createdAt: new Date()
                     });
                     count++;
                 }
                 status.innerText = `${count} ürün başarıyla eklendi!`;
-                setTimeout(() => {
-                    codeModal.style.display = 'none';
-                    status.innerText = "";
-                    document.getElementById('bulkCodeInput').value = '';
-                    loadAdminMenu();
-                }, 1500);
-            } catch (e) {
-                console.error(e);
-                alert("Toplu ekleme sırasında hata oluştu!");
-                status.innerText = "";
-            }
+                setTimeout(() => { codeModal.style.display = 'none'; status.innerText = ""; document.getElementById('bulkCodeInput').value = ''; loadAdminMenu(); }, 1500);
+            } catch (e) { alert("Toplu ekleme sırasında hata oluştu!"); status.innerText = ""; }
         };
 
-        // HEPSİNİ SİL
         document.getElementById('deleteAllBtn').onclick = async () => {
             if(confirm("DİKKAT: Veritabanındaki TÜM ürünler kalıcı olarak silinecek! Emin misiniz?")) {
                 const snapshot = await getDocs(collection(db, "products"));
@@ -220,74 +400,41 @@
 
         fileInput.onchange = (evt) => {
             const [file] = fileInput.files;
-            if (file) {
-                imagePreview.src = URL.createObjectURL(file);
-                imagePreview.style.display = "block";
-            }
+            if (file) { imagePreview.src = URL.createObjectURL(file); imagePreview.style.display = "block"; }
         };
 
         const uploadToImgBB = async (file) => {
-            const apiKey = 'b644a5f26257bdfb722d1b474a850ff0'; 
             const formData = new FormData();
             formData.append('image', file);
-
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-                method: 'POST',
-                body: formData
-            });
-
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=b644a5f26257bdfb722d1b474a850ff0`, { method: 'POST', body: formData });
             const data = await response.json();
-            if (data.success) {
-                return data.data.url;
-            } else {
-                throw new Error('Resim yükleme servisi hata verdi.');
-            }
+            if (data.success) return data.data.url;
+            else throw new Error('Resim yükleme servisi hata verdi.');
         };
 
         document.getElementById('saveBtn').onclick = async () => {
-            const btn = document.getElementById('saveBtn');
-            const msg = document.getElementById('statusMsg');
-            const editId = document.getElementById('editProductId').value;
-            const name = document.getElementById('pName').value;
-            const category = document.getElementById('pCategory').value;
-            const oldPrice = document.getElementById('pOldPrice').value;
-            const price = document.getElementById('pPrice').value;
-            const desc = document.getElementById('pDesc').value;
+            const btn = document.getElementById('saveBtn'), msg = document.getElementById('statusMsg'), editId = document.getElementById('editProductId').value;
+            const name = document.getElementById('pName').value, category = document.getElementById('pCategory').value;
+            const oldPrice = document.getElementById('pOldPrice').value, price = document.getElementById('pPrice').value, desc = document.getElementById('pDesc').value;
 
             if(!name || !price) return alert("Ürün adı ve geçerli fiyat zorunludur!");
-
             btn.innerText = "İşleniyor...";
             try {
                 let imageUrl = "";
-                if (fileInput.files.length > 0) {
-                    msg.innerText = "Resim ImgBB'ye yükleniyor...";
-                    imageUrl = await uploadToImgBB(fileInput.files[0]);
-                }
-
-                msg.innerText = "Veritabanına kaydediliyor...";
+                if (fileInput.files.length > 0) { msg.innerText = "Resim yükleniyor..."; imageUrl = await uploadToImgBB(fileInput.files[0]); }
+                msg.innerText = "Kaydediliyor...";
 
                 if (editId) {
                     const updateData = { name, category, oldPrice, price, desc };
                     if (imageUrl) updateData.imageUrl = imageUrl;
-
                     await updateDoc(doc(db, "products", editId), updateData);
-                    msg.innerText = "Ürün başarıyla güncellendi!";
-                    resetForm();
+                    msg.innerText = "Güncellendi!";
                 } else {
-                    await addDoc(collection(db, "products"), {
-                        name, category, oldPrice, price, desc, imageUrl, createdAt: new Date()
-                    });
-                    msg.innerText = "Ürün başarıyla eklendi!";
-                    resetForm();
+                    await addDoc(collection(db, "products"), { name, category, oldPrice, price, desc, imageUrl, createdAt: new Date() });
+                    msg.innerText = "Eklendi!";
                 }
-
-                setTimeout(() => msg.innerText = "", 3000);
-                loadAdminMenu();
-            } catch (e) {
-                console.error(e);
-                alert("İşlem sırasında hata oluştu!");
-                msg.innerText = "";
-            }
+                resetForm(); setTimeout(() => msg.innerText = "", 3000); loadAdminMenu();
+            } catch (e) { alert("Hata oluştu!"); msg.innerText = ""; }
             btn.innerText = "Ürünü Kaydet";
         };
 
@@ -296,41 +443,27 @@
             tbody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
             const snapshot = await getDocs(collection(db, "products"));
             tbody.innerHTML = '';
-            
             snapshot.forEach(d => {
                 const item = d.data();
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${item.imageUrl || ''}" alt="Yemek"></td>
-                    <td>${item.name}</td>
-                    <td>${item.category}</td>
-                    <td>${item.price} TL</td>
+                tbody.innerHTML += `<tr>
+                    <td><img src="${item.imageUrl || ''}"></td><td>${item.name}</td><td>${item.category}</td><td>${item.price} TL</td>
                     <td>
                         <button class="btn btn-edit btn-sm" onclick="editProduct('${d.id}')">Düzenle</button>
                         <button class="btn btn-red btn-sm" onclick="deleteProduct('${d.id}')">Sil</button>
                     </td>
-                `;
-                tbody.appendChild(tr);
+                </tr>`;
             });
         }
 
         window.editProduct = async (id) => {
-            const docRef = doc(db, "products", id);
-            const docSnap = await getDoc(docRef);
+            const docSnap = await getDoc(doc(db, "products", id));
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 document.getElementById('editProductId').value = id;
-                document.getElementById('pName').value = data.name;
-                document.getElementById('pCategory').value = data.category;
-                document.getElementById('pOldPrice').value = data.oldPrice || '';
-                document.getElementById('pPrice').value = data.price;
+                document.getElementById('pName').value = data.name; document.getElementById('pCategory').value = data.category;
+                document.getElementById('pOldPrice').value = data.oldPrice || ''; document.getElementById('pPrice').value = data.price;
                 document.getElementById('pDesc').value = data.desc || '';
-                
-                if (data.imageUrl) {
-                    imagePreview.src = data.imageUrl;
-                    imagePreview.style.display = "block";
-                }
-
+                if (data.imageUrl) { imagePreview.src = data.imageUrl; imagePreview.style.display = "block"; }
                 document.getElementById('formTitle').innerText = "Ürünü Düzenle";
                 document.getElementById('saveBtn').innerText = "Değişiklikleri Kaydet";
                 document.getElementById('cancelBtn').style.display = "inline-block";
@@ -341,24 +474,15 @@
         document.getElementById('cancelBtn').onclick = () => resetForm();
 
         function resetForm() {
-            document.getElementById('editProductId').value = '';
-            document.getElementById('pName').value = '';
-            document.getElementById('pOldPrice').value = '';
-            document.getElementById('pPrice').value = '';
-            document.getElementById('pDesc').value = '';
-            fileInput.value = '';
-            imagePreview.style.display = "none";
-            imagePreview.src = "";
-            document.getElementById('formTitle').innerText = "Yeni Ürün Ekle";
-            document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
+            document.getElementById('editProductId').value = ''; document.getElementById('pName').value = '';
+            document.getElementById('pOldPrice').value = ''; document.getElementById('pPrice').value = '';
+            document.getElementById('pDesc').value = ''; fileInput.value = ''; imagePreview.style.display = "none"; imagePreview.src = "";
+            document.getElementById('formTitle').innerText = "Yeni Ürün Ekle"; document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
             document.getElementById('cancelBtn').style.display = "none";
         }
 
         window.deleteProduct = async (id) => {
-            if(confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
-                await deleteDoc(doc(db, "products", id));
-                loadAdminMenu();
-            }
+            if(confirm("Silmek istediğinize emin misiniz?")) { await deleteDoc(doc(db, "products", id)); loadAdminMenu(); }
         };
     </script>
 </body>
