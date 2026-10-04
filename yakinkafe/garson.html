@@ -8,9 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root { --primary-color: #273c75; --accent: #e84118; --bg-color: #f5f6fa; --card-bg: #ffffff; --text-main: #2f3640; --text-muted: #7f8fa6; --border-color: #f1f2f6; --success: #4cd137; --warning: #fbc531; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 120px; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); padding-bottom: 100px; }
         
-        /* GİRİŞ EKRANI */
         #login-screen { position: fixed; width: 100%; height: 100%; background: var(--primary-color); display: flex; justify-content: center; align-items: center; z-index: 3000; }
         .login-box { background: white; padding: 40px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .login-box h2 { margin-top: 0; color: var(--primary-color); }
@@ -35,19 +34,19 @@
         .table-card { height: 110px; background: white; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
         .table-empty { border-color: #dcdde1; color: var(--text-main); }
         .table-order { background: var(--accent); color: white; border-color: var(--accent); }
-        .table-ready { background: var(--success); color: white; border-color: var(--success); } /* Tümü hazır olunca yeşil masa */
+        .table-ready { background: var(--success); color: white; border-color: var(--success); }
         .table-waiter { background: var(--warning); color: white; border-color: var(--warning); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
         .table-status { font-size: 0.75rem; font-weight: 500; margin-top: 5px; background: rgba(0,0,0,0.1); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
         
-        /* Canlı Bildirim Paneli */
+        /* Kompakt Canlı Bildirim Listesi */
         .live-notifications-panel { max-width: 800px; margin: 20px auto; padding: 0 15px; }
-        .notif-card { background: white; border-left: 5px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
-        .notif-card.order-ready { border-left-color: var(--success); }
-        .notif-info h4 { margin: 0 0 5px 0; font-size: 1rem; color: var(--text-main); }
-        .notif-info p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+        .notif-list { display: flex; flex-direction: column; gap: 8px; }
+        .notif-row { background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--warning); font-size: 0.9rem; }
+        .notif-row.ready-row { border-left-color: var(--success); }
+        .notif-text { display: flex; align-items: center; gap: 8px; font-weight: 500; }
         
-        .btn-serve { background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+        .btn-serve-sm { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
 
         /* Menü */
         .menu-container { max-width: 800px; margin: 10px auto; padding: 0 15px; }
@@ -87,7 +86,6 @@
 </head>
 <body>
 
-    <!-- GİRİŞ EKRANI -->
     <div id="login-screen">
         <div class="login-box">
             <h2>Garson Girişi</h2>
@@ -98,7 +96,6 @@
         </div>
     </div>
 
-    <!-- ANA UYGULAMA -->
     <div id="main-app">
         <header>
             <div class="header-content">
@@ -108,20 +105,18 @@
             </div>
         </header>
 
-        <!-- 1. GÖRÜNÜM: MASALAR VE CANLI BİLDİRİMLER -->
         <div id="view-tables" class="view-section active">
             <div class="table-grid" id="tableGrid"></div>
 
-            <!-- GARSON İÇİN CANLI BİLDİRİM PANELİ (TEK TEK HAZIR OLAN ÜRÜNLER VE ÇAĞRILAR) -->
+            <!-- KOMPAKT CANLI BİLDİRİM PANELİ -->
             <div class="live-notifications-panel">
-                <h3 style="font-size:1.1rem; color:var(--text-main); margin-bottom:10px;">🔔 Canlı Servis ve Hazır Ürünler</h3>
-                <div id="liveNotifContainer">
-                    <p style="color:var(--text-muted); font-size:0.9rem;">Aktif çağrı veya bekleyen bildirim yok.</p>
+                <h3 style="font-size:1.05rem; color:var(--text-main); margin-bottom:8px;">🔔 Canlı Akış (Çağrılar ve Hazır Ürünler)</h3>
+                <div class="notif-list" id="liveNotifContainer">
+                    <p style="color:var(--text-muted); font-size:0.85rem;">Aktif bildirim bulunmuyor.</p>
                 </div>
             </div>
         </div>
 
-        <!-- 2. GÖRÜNÜM: MENÜ -->
         <div id="view-menu" class="view-section">
             <div class="menu-container" id="menuContainer"></div>
         </div>
@@ -197,7 +192,7 @@
                     startApp(); 
                 } else {
                     signOut(auth);
-                    alert("Erişim Engellendi: Bu panele sadece Garsonlar girebilir!");
+                    alert("Erişim Engellendi!");
                 }
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
@@ -227,25 +222,19 @@
 
                         if(data.type === 'waiter') {
                             notifHtml += `
-                                <div class="notif-card">
-                                    <div class="notif-info">
-                                        <h4>🔔 Masa ${data.tableNo} - Garson Çağrısı!</h4>
-                                        <p>Müşteri acil garson bekliyor.</p>
-                                    </div>
-                                    <button class="btn-serve" onclick="window.resolveOrder('${id}')">İlgilendim / Kapat</button>
+                                <div class="notif-row">
+                                    <div class="notif-text">🔔 <b>Masa ${data.tableNo}:</b> Garson Çağrısı Var</div>
+                                    <button class="btn-serve-sm" onclick="window.resolveOrder('${id}')">Kapat</button>
                                 </div>
                             `;
                         } else if(data.type === 'order' && data.items) {
-                            // Tek tek hazır olan ürünleri kontrol edelim
+                            // Tek tek hazır olan ürünleri kompakt satır olarak listele
                             data.items.forEach((item, idx) => {
                                 if(item.ready === true) {
                                     notifHtml += `
-                                        <div class="notif-card order-ready">
-                                            <div class="notif-info">
-                                                <h4>✅ Masa ${data.tableNo} - Ürün Hazır!</h4>
-                                                <p><b>${item.name}</b> (${item.price} TL) mutfaktan alınıp masaya götürülmeyi bekliyor.</p>
-                                            </div>
-                                            <button class="btn-serve" onclick="window.markItemServed('${id}', ${idx})">Götürüldü</button>
+                                        <div class="notif-row ready-row">
+                                            <div class="notif-text">✅ <b>Masa ${data.tableNo}:</b> ${item.name} Hazır!</div>
+                                            <button class="btn-serve-sm" onclick="window.resolveOrder('${id}')">Götürüldü</button>
                                         </div>
                                     `;
                                 }
@@ -255,25 +244,11 @@
                 });
 
                 renderTables();
-                document.getElementById('liveNotifContainer').innerHTML = notifHtml || '<p style="color:var(--text-muted); font-size:0.9rem;">Aktif çağrı veya bekleyen bildirim yok.</p>';
+                document.getElementById('liveNotifContainer').innerHTML = notifHtml || '<p style="color:var(--text-muted); font-size:0.85rem;">Aktif bildirim bulunmuyor.</p>';
             });
 
             loadMenu();
         }
-
-        // Tek bir ürünün teslim edildiğini işaretleme (veya siparişi komple tamamlama)
-        window.markItemServed = async (orderId, itemIndex) => {
-            try {
-                const orderRef = doc(db, "orders", orderId);
-                const orderSnap = await getDocs(collection(db, "orders")); // Alternatif güncelleme
-                // Pratik olması için ilgili siparişi çekip item'ı ready:false yapabiliriz ya da direkt tamamlayabiliriz.
-                // Basitçe o siparişin durumunu completed yapabiliriz veya ürünü listeden gizleyebiliriz.
-                // İdeal çözüm için siparişi komple bitirebiliriz veya admin panelinden yönetilmesini sağlayabiliriz.
-                await updateDoc(orderRef, { status: 'completed' }); 
-            } catch(e) {
-                alert("İşlem sırasında hata oluştu.");
-            }
-        };
 
         window.resolveOrder = async (orderId) => {
             try {
