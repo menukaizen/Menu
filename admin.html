@@ -185,15 +185,15 @@
             
             <div class="table-grid" id="tableGrid"></div>
 
-            <div class="section-title">🍳 Mutfak ve Servis Canlı Takip Paneli</div>
+            <div class="section-title">🍳 Mutfak ve Ürün Bazlı Servis Takibi</div>
             <table>
                 <thead>
                     <tr>
                         <th>Masa No</th>
-                        <th>Durum / Aşama</th>
-                        <th>İçerik (Sipariş Detayı)</th>
+                        <th>İşlem / Durum</th>
+                        <th>Ürünler (Tek Tek Onaylayabilirsiniz)</th>
                         <th>Tutar / Saat</th>
-                        <th>Mutfak ve Servis İşlemleri</th>
+                        <th>Mutfak İşlemleri</th>
                     </tr>
                 </thead>
                 <tbody id="liveOrdersTableBody">
@@ -344,18 +344,28 @@
                             </tr>`;
                         } else if(data.type === 'order') {
                             let itemsText = '<ul style="margin:0; padding-left:15px;">';
-                            if(data.items) data.items.forEach(i => itemsText += `<li>${i.name} (${i.price} TL)</li>`);
+                            if(data.items) {
+                                data.items.forEach((item, idx) => {
+                                    let isItemReady = item.ready === true;
+                                    let itemStatusText = isItemReady 
+                                        ? `<span style="color:var(--success); font-weight:600;">[✅ Hazır]</span>` 
+                                        : `<button class="btn btn-info" style="padding:2px 6px; font-size:11px;" onclick="window.toggleItemReady('${id}', ${idx})">Hazır De</button>`;
+                                    
+                                    itemsText += `<li style="margin-bottom:4px;">${item.name} (${item.price} TL) ${itemStatusText}</li>`;
+                                });
+                            }
                             itemsText += '</ul>';
 
-                            // Mutfak durumu kontrolü (Hazırlanıyor mü, Hazırlandı mı?)
-                            let isReady = data.kitchenStatus === 'ready';
-                            let statusBadge = isReady 
-                                ? '<span style="background:var(--success); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">✅ Hazırlandı (Servis Bekliyor)</span>' 
-                                : '<span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔥 Mutfakta Hazırlanıyor</span>';
+                            // Tüm ürünler hazır mı kontrolü
+                            let allReady = data.items && data.items.length > 0 && data.items.every(i => i.ready === true);
+                            let statusBadge = allReady 
+                                ? '<span style="background:var(--success); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">✅ Tümü Hazır (Servis Bekliyor)</span>' 
+                                : '<span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔥 Parçalı Hazırlanıyor</span>';
 
-                            let actionButtons = isReady 
-                                ? `<button class="btn btn-success" onclick="window.completeAndCountOrder('${id}')">Servis Edildi / Bitir</button>` 
-                                : `<button class="btn btn-info" style="margin-bottom:5px;" onclick="window.markAsReady('${id}')">✅ Hazırlandı De</button><br><button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>`;
+                            let actionButtons = `
+                                <button class="btn btn-success" style="margin-bottom:5px;" onclick="window.completeAndCountOrder('${id}')">Tümünü Bitir / Servis Et</button><br>
+                                <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>
+                            `;
 
                             liveListHtml += `<tr>
                                 <td><strong>Masa ${data.tableNo}</strong></td>
@@ -378,16 +388,21 @@
             });
         }
 
-        // Mutfak "Hazırlandı" butonuna bastığında çalışır
-        window.markAsReady = async (orderId) => {
+        // Tek bir ürünün hazır durumunu değiştirme fonksiyonu
+        window.toggleItemReady = async (orderId, itemIndex) => {
             try {
-                await updateDoc(doc(db, "orders", orderId), { kitchenStatus: 'ready' });
+                const orderRef = doc(db, "orders", orderId);
+                const orderSnap = await getDoc(orderRef);
+                if(orderSnap.exists()) {
+                    let items = orderSnap.data().items || [];
+                    items[itemIndex].ready = !items[itemIndex].ready; // Durumu tersine çevir
+                    await updateDoc(orderRef, { items: items });
+                }
             } catch(e) {
-                alert("İşlem sırasında hata oluştu.");
+                alert("Güncellenirken hata oluştu.");
             }
         };
 
-        // Sipariş "Servis Edildi / Bitir" denildiğinde hem tamamlanır hem istatistiğe eklenir
         window.completeAndCountOrder = async (orderId) => {
             try {
                 const orderRef = doc(db, "orders", orderId);
