@@ -7,7 +7,7 @@
     <title>Yönetim Paneli - Kafe Otomasyonu</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #e84118; --bg: #f5f6fa; --dark: #2f3640; --edit: #fbc531; --code-bg: #273c75; --danger: #eb2f06; --muted: #7f8fa6; --success: #4cd137; }
+        :root { --primary: #e84118; --bg: #f5f6fa; --dark: #2f3640; --edit: #fbc531; --code-bg: #273c75; --danger: #eb2f06; --muted: #7f8fa6; --success: #4cd137; --info: #3498db; }
         body { font-family: 'Poppins', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
         #login-screen { position: fixed; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-box { background: white; padding: 40px; border-radius: 10px; width: 300px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
@@ -16,7 +16,6 @@
         
         #main-app { display: none; padding: 20px; max-width: 1000px; margin: 0 auto; }
         
-        /* Sekme Stilleri */
         .tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; flex-wrap: wrap; }
         .tab-btn { padding: 10px 20px; border: none; background: transparent; font-size: 15px; font-weight: 600; cursor: pointer; color: var(--muted); transition: 0.3s; }
         .tab-btn:hover { color: var(--dark); }
@@ -28,10 +27,11 @@
         .header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; flex-wrap: wrap; gap: 10px; }
         .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { padding: 8px 14px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; }
-        .btn-red { background: #c23616; }
-        .btn-danger { background: var(--danger); }
+        .btn-red { background: #c23616; color: white; }
+        .btn-danger { background: var(--danger); color: white; }
         .btn-edit { background: #e1b12c; color: white; }
         .btn-success { background: var(--success); color: white; }
+        .btn-info { background: var(--info); color: white; }
         .btn-code { background: var(--code-bg); color: white; }
         .btn-cancel { background: var(--muted); display: none; margin-left: 10px; }
         
@@ -50,7 +50,6 @@
         th { background: #f1f2f6; }
         td img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
 
-        /* Masa Grid Stilleri */
         .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; margin-bottom: 30px; }
         .table-card { height: 110px; background: white; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.3rem; font-weight: 600; cursor: pointer; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; position: relative; }
         .table-card:hover { transform: translateY(-3px); }
@@ -62,7 +61,6 @@
         .section-title { font-size: 1.2rem; font-weight: 600; margin-top: 30px; margin-bottom: 15px; color: var(--dark); border-bottom: 2px solid #ddd; padding-bottom: 5px; }
         .stats-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-top: 20px; }
 
-        /* Bar Grafik Stilleri */
         .month-group { margin-bottom: 25px; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .month-title { font-size: 1.1rem; font-weight: 600; color: var(--primary); margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .bar-container { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
@@ -115,7 +113,7 @@
         <!-- SEKME MENÜSÜ -->
         <div class="tabs">
             <button class="tab-btn active" id="tab-products">Ürün Yönetimi</button>
-            <button class="tab-btn" id="tab-tables">Masalar ve Canlı Takip</button>
+            <button class="tab-btn" id="tab-tables">Masalar ve Mutfak Takibi</button>
             <button class="tab-btn" id="tab-stats">📊 Bar Grafik İstatistikleri</button>
         </div>
 
@@ -174,10 +172,10 @@
             </table>
         </div>
 
-        <!-- 2. MASALAR VE CANLI TAKİP -->
+        <!-- 2. MASALAR VE MUTFAK TAKİBİ -->
         <div id="view-tables" class="view-section">
             <div class="header">
-                <h2>Masa Yönetimi</h2>
+                <h2>Masa ve Mutfak Yönetimi</h2>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="number" id="tableCountInput" placeholder="Masa Sayısı" style="padding:8px; border:1px solid #ddd; border-radius:5px; width:100px;" min="1">
                     <button id="saveTableCountBtn" class="btn">Sayısı Güncelle</button>
@@ -187,15 +185,15 @@
             
             <div class="table-grid" id="tableGrid"></div>
 
-            <div class="section-title">📋 Aktif Siparişler ve Garson Çağrıları (Canlı Takip)</div>
+            <div class="section-title">🍳 Mutfak ve Servis Canlı Takip Paneli</div>
             <table>
                 <thead>
                     <tr>
                         <th>Masa No</th>
-                        <th>İşlem / Durum</th>
-                        <th>İçerik (Ne İstendi?)</th>
+                        <th>Durum / Aşama</th>
+                        <th>İçerik (Sipariş Detayı)</th>
                         <th>Tutar / Saat</th>
-                        <th>İşlemler</th>
+                        <th>Mutfak ve Servis İşlemleri</th>
                     </tr>
                 </thead>
                 <tbody id="liveOrdersTableBody">
@@ -204,14 +202,13 @@
             </table>
         </div>
 
-        <!-- 3. AY BAZLI BAR GRAFİK İSTATİSTİKLERİ VE MANUEL MÜDAHALE -->
+        <!-- 3. İSTATİSTİKLER -->
         <div id="view-stats" class="view-section">
             <div class="header">
                 <h2>Ay Bazlı Satış Raporu (Bar Grafik)</h2>
                 <button class="btn btn-red logout-trigger">Çıkış Yap</button>
             </div>
 
-            <!-- Manuel Düzeltme / Ekleme Kartı -->
             <div class="form-card" style="grid-template-columns: 1fr 1fr 1fr auto; align-items: flex-end;">
                 <div class="form-group">
                     <label>Ay Seçin</label>
@@ -235,7 +232,6 @@
                 </div>
             </div>
 
-            <!-- Bar Grafiğin Çizileceği Alan -->
             <div class="stats-card">
                 <div class="section-title" style="margin-top:0;">Aylara Göre Satış Grafikleri</div>
                 <div id="barChartsContainer">
@@ -323,13 +319,12 @@
             }
         });
 
-        // Canlı Siparişler ve Otomatik İstatistik Ekleme Akışı
         async function listenToStatsAndOrders() {
             onSnapshot(collection(db, "orders"), async (snapshot) => {
                 activeOrders = {};
                 let liveListHtml = '';
 
-                for (const d of snapshot.docs) {
+                snapshot.forEach(d => {
                     const data = d.data();
                     const id = d.id;
 
@@ -345,36 +340,54 @@
                                 <td><span style="background:var(--edit); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔔 Garson Çağrısı</span></td>
                                 <td>Masa garson çağırıyor.</td>
                                 <td>${timeStr}</td>
-                                <td><button class="btn btn-success" onclick="window.updateOrderStatus('${id}', 'completed')">Tamamla</button> <button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button></td>
+                                <td><button class="btn btn-success" onclick="window.updateOrderStatus('${id}', 'completed')">Kapat / İlgilen</button></td>
                             </tr>`;
                         } else if(data.type === 'order') {
                             let itemsText = '<ul style="margin:0; padding-left:15px;">';
                             if(data.items) data.items.forEach(i => itemsText += `<li>${i.name} (${i.price} TL)</li>`);
                             itemsText += '</ul>';
 
+                            // Mutfak durumu kontrolü (Hazırlanıyor mü, Hazırlandı mı?)
+                            let isReady = data.kitchenStatus === 'ready';
+                            let statusBadge = isReady 
+                                ? '<span style="background:var(--success); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">✅ Hazırlandı (Servis Bekliyor)</span>' 
+                                : '<span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🔥 Mutfakta Hazırlanıyor</span>';
+
+                            let actionButtons = isReady 
+                                ? `<button class="btn btn-success" onclick="window.completeAndCountOrder('${id}')">Servis Edildi / Bitir</button>` 
+                                : `<button class="btn btn-info" style="margin-bottom:5px;" onclick="window.markAsReady('${id}')">✅ Hazırlandı De</button><br><button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button>`;
+
                             liveListHtml += `<tr>
                                 <td><strong>Masa ${data.tableNo}</strong></td>
-                                <td><span style="background:var(--primary); color:white; padding:3px 8px; border-radius:10px; font-size:12px;">🛒 Sipariş</span></td>
+                                <td>${statusBadge}</td>
                                 <td>${itemsText}</td>
                                 <td><b>${data.totalPrice} TL</b><br><small>${timeStr}</small></td>
-                                <td><button class="btn btn-success" style="margin-bottom: 5px;" onclick="window.completeAndCountOrder('${id}')">Servis Edildi / Bitir</button><br><button class="btn btn-red" onclick="window.updateOrderStatus('${id}', 'completed')">İptal Et</button></td>
+                                <td>${actionButtons}</td>
                             </tr>`;
                         }
                     }
-                }
+                });
 
                 renderTables();
                 const liveBody = document.getElementById('liveOrdersTableBody');
                 liveBody.innerHTML = liveListHtml || '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Aktif sipariş veya çağrı bulunmuyor.</td></tr>';
             });
 
-            // İstatistikleri Canlı Dinle ve Bar Grafikleri Çiz
             onSnapshot(collection(db, "monthly_stats"), (statSnap) => {
                 renderBarCharts(statSnap);
             });
         }
 
-        // Sipariş "Servis Edildi / Bitir" denildiğinde hem tamamlanır hem istatistiğe OTOMATİK eklenir
+        // Mutfak "Hazırlandı" butonuna bastığında çalışır
+        window.markAsReady = async (orderId) => {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { kitchenStatus: 'ready' });
+            } catch(e) {
+                alert("İşlem sırasında hata oluştu.");
+            }
+        };
+
+        // Sipariş "Servis Edildi / Bitir" denildiğinde hem tamamlanır hem istatistiğe eklenir
         window.completeAndCountOrder = async (orderId) => {
             try {
                 const orderRef = doc(db, "orders", orderId);
@@ -382,12 +395,9 @@
                 
                 if(orderSnap.exists()) {
                     const orderData = orderSnap.data();
-                    
-                    // Şuan ki ayı otomatik buluyoruz (Örn: Şubat, Ekim vb.)
                     const monthsNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
                     const currentMonth = monthsNames[new Date().getMonth()];
 
-                    // Ürünleri ilgili aya ekle
                     if(orderData.items) {
                         for(const item of orderData.items) {
                             const statDocId = `${currentMonth}_${item.name}`;
@@ -402,13 +412,12 @@
                             await setDoc(statRef, {
                                 month: currentMonth,
                                 productName: item.name,
-                                quantity: existingQty + 1, // Otomatik 1 artır
+                                quantity: existingQty + 1,
                                 updatedAt: new Date()
                             });
                         }
                     }
 
-                    // Siparişi tamamlandı olarak işaretle
                     await updateDoc(orderRef, { status: 'completed' });
                 }
             } catch(e) {
@@ -436,7 +445,6 @@
             }
         }
 
-        // --- BAR GRAFİK OLUŞTURMA SİSTEMİ ---
         function renderBarCharts(statSnap) {
             const container = document.getElementById('barChartsContainer');
             if(statSnap.empty) {
@@ -444,7 +452,6 @@
                 return;
             }
 
-            // Verileri aylara göre gruplayalım
             let monthsData = {};
             statSnap.forEach(d => {
                 const s = d.data();
@@ -454,7 +461,6 @@
 
             let html = '';
             for(const [month, items] of Object.entries(monthsData)) {
-                // En yüksek adedi bulalım ki bar uzunluklarını ona göre oranlayalım (Max 100% orantı için)
                 let maxQty = Math.max(...items.map(i => i.qty), 1);
 
                 html += `<div class="month-group">
@@ -462,7 +468,7 @@
                 
                 items.forEach(item => {
                     let percentage = Math.round((item.qty / maxQty) * 100);
-                    if(percentage < 5) percentage = 5; // Çok küçükse bile görünsün
+                    if(percentage < 5) percentage = 5;
 
                     html += `<div class="bar-container">
                         <div class="bar-label" title="${item.name}">${item.name}</div>
@@ -482,7 +488,6 @@
             container.innerHTML = html;
         }
 
-        // Manuel Ekleme / Düzeltme
         async function loadProductsForStats() {
             const select = document.getElementById('statProductSelect');
             const snap = await getDocs(collection(db, "products"));
@@ -551,7 +556,6 @@
 
         document.getElementById('closeDetailModalBtn').onclick = () => document.getElementById('tableDetailModal').style.display = 'none';
 
-        // Ürün Yönetimi Kodları
         const codeModal = document.getElementById('codeModal');
         document.getElementById('openCodeModalBtn').onclick = () => codeModal.style.display = 'flex';
         document.getElementById('closeModalBtn').onclick = () => codeModal.style.display = 'none';
@@ -651,7 +655,7 @@
             fileInput.value = ''; imagePreview.style.display = 'none'; imagePreview.src = '';
             document.getElementById('formTitle').innerText = "Yeni Ürün Ekle";
             document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
-            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('cancelBtn').style.display = "none";
         }
 
         window.deleteProduct = async (id) => {
