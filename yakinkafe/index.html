@@ -117,7 +117,6 @@
                 <span>Toplam Hesap:</span>
                 <span id="myOrdersTotal">0 TL</span>
             </div>
-            <!-- "Ekleme Yap" butonu her zaman görünür olacak -->
             <button class="btn-add-more" id="addMoreItemsBtn">➕ Siparişe Yeni Ürün Ekle</button>
             <button class="btn-cancel-table" id="resetTableBtn" style="width:100%; margin-top:10px;">Masayı Değiştir / Çıkış Yap</button>
         </div>
@@ -293,10 +292,14 @@
                     const orderId = docSnap.id;
 
                     if(data.status === 'pending' && data.type === 'order') {
-                        // 1 dakika (60.000 ms) kontrolü
                         let orderTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : now;
                         let diffMs = now - orderTime;
-                        let canCancel = diffMs < 60000; // Sadece ilk 1 dakikada iptal edilebilir
+                        let canCancel = diffMs < 60000; // İlk 1 dakikada iptal edilebilir
+
+                        // Mutfak durumuna göre metin değişimi
+                        let statusText = data.kitchenStatus === 'ready' 
+                            ? '<span style="font-size:0.8rem; font-weight:600; color:var(--success);">✅ Hazırlandı / Servis Bekliyor!</span>' 
+                            : '<span style="font-size:0.75rem; color:var(--info);">🔥 Hazırlanıyor...</span>';
 
                         data.items.forEach(item => {
                             total += Number(item.price);
@@ -305,7 +308,7 @@
                                 <div class="cart-item">
                                     <div class="cart-item-info">
                                         <span class="cart-item-title">${item.name}</span>
-                                        <span style="font-size:0.75rem; color:var(--success);">Hazırlanıyor...</span>
+                                        ${statusText}
                                         ${canCancel ? `<button class="btn-cancel-order" onclick="window.cancelOrder('${orderId}')">Siparişi İptal Et</button>` : ''}
                                     </div>
                                     <span class="cart-item-price">${item.price} TL</span>
@@ -332,7 +335,6 @@
             }
         };
 
-        // "Ekleme Yap" butonu her zaman menüye dönmeyi sağlar
         document.getElementById('addMoreItemsBtn').onclick = () => {
             document.getElementById('myOrdersModal').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -366,7 +368,7 @@
                     alert(`Masa ${currentTableNo} için garson çağrıldı!`);
                 } catch (error) { alert("Bir hata oluştu."); }
                 
-                btn.innerText = "🔔 Garson Çağır";
+                btn.innerText = "🔔 Garson Çağrır";
                 btn.disabled = false;
             });
         };
@@ -389,6 +391,7 @@
                         items: orderItems,
                         totalPrice: total,
                         status: "pending",
+                        kitchenStatus: "preparing", // Başlangıç aşaması
                         createdAt: new Date()
                     });
                     
