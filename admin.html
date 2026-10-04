@@ -213,11 +213,19 @@
             btn.onclick = () => signOut(auth);
         });
 
+        // KİMLİK DOĞRULAMA (SADECE ADMİN)
         onAuthStateChanged(auth, user => {
             if (user) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
-                loadAdminMenu();
+                // Sadece Admin UID'si veya e-postası ise içeri al
+                if (user.uid === "n9SfOjJRdjTbSCM5mE1fLX9rvml2" || user.email === "deneme@gmail.com") {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-app').style.display = 'block';
+                    loadAdminMenu();
+                } else {
+                    // Garson veya başkası girmeye çalışırsa at
+                    signOut(auth);
+                    alert("Erişim Engellendi: Bu panele sadece Yöneticiler girebilir!");
+                }
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
@@ -241,9 +249,9 @@
 
         // -- MASA VE SİPARİŞ YÖNETİMİ --
         let currentTableCount = 0;
-        let activeOrders = {}; // Gelen sipariş ve çağrıları hafızada tutar
+        let activeOrders = {}; 
 
-        // 1. Masa Sayısını Kaydetme
+        // Masa Sayısını Kaydetme
         document.getElementById('saveTableCountBtn').onclick = async () => {
             const count = parseInt(document.getElementById('tableCountInput').value);
             if(count > 0) {
@@ -254,7 +262,7 @@
             }
         };
 
-        // 2. Ayarları ve Masa Sayısını Dinleme (Gerçek Zamanlı)
+        // Ayarları ve Masa Sayısını Dinleme
         onSnapshot(doc(db, "settings", "general"), (docSnap) => {
             if(docSnap.exists()) {
                 currentTableCount = docSnap.data().tableCount || 0;
@@ -263,7 +271,7 @@
             }
         });
 
-        // 3. Siparişleri ve Garson Çağrılarını Dinleme (Gerçek Zamanlı)
+        // Siparişleri ve Garson Çağrılarını Dinleme
         onSnapshot(collection(db, "orders"), (snapshot) => {
             activeOrders = {};
             snapshot.forEach(d => {
@@ -276,7 +284,7 @@
             renderTables();
         });
 
-        // 4. Masaları Ekrana Çizme
+        // Masaları Ekrana Çizme
         function renderTables() {
             const grid = document.getElementById('tableGrid');
             grid.innerHTML = '';
@@ -306,7 +314,7 @@
             }
         }
 
-        // 5. Masaya Tıklanınca Detayları Gösterme
+        // Masaya Tıklanınca Detayları Gösterme
         window.openTableDetail = (tableNo) => {
             const modal = document.getElementById('tableDetailModal');
             const content = document.getElementById('tableDetailContent');
@@ -351,7 +359,7 @@
             document.getElementById('tableDetailModal').style.display = 'none';
         };
 
-        // 6. Masadaki Siparişleri / Çağrıları Tamamlandı Olarak İşaretleme
+        // Masadaki Siparişleri / Çağrıları Tamamlandı Olarak İşaretleme
         async function completeTableOrders(events) {
             document.getElementById('completeOrdersBtn').innerText = "İşleniyor...";
             try {
@@ -363,7 +371,6 @@
             }
             document.getElementById('completeOrdersBtn').innerText = "Tümünü Tamamlandı İşaretle";
         }
-
 
         // -- ÜRÜN YÖNETİMİ KODLARI --
         const codeModal = document.getElementById('codeModal');
