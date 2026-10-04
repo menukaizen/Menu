@@ -46,7 +46,7 @@
         .notif-row.ready-row { border-left-color: var(--success); }
         .notif-text { display: flex; align-items: center; gap: 8px; font-weight: 500; }
         
-        .btn-serve-sm { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
+        .btn-serve-sm { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
 
         /* Menü */
         .menu-container { max-width: 800px; margin: 10px auto; padding: 0 15px; }
@@ -108,7 +108,6 @@
         <div id="view-tables" class="view-section active">
             <div class="table-grid" id="tableGrid"></div>
 
-            <!-- KOMPAKT CANLI BİLDİRİM PANELİ -->
             <div class="live-notifications-panel">
                 <h3 style="font-size:1.05rem; color:var(--text-main); margin-bottom:8px;">🔔 Canlı Akış (Çağrılar ve Hazır Ürünler)</h3>
                 <div class="notif-list" id="liveNotifContainer">
@@ -156,7 +155,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbtWAtTPpA7cNlddGdFyYMEli9O52TVxQ",
@@ -224,17 +223,17 @@
                             notifHtml += `
                                 <div class="notif-row">
                                     <div class="notif-text">🔔 <b>Masa ${data.tableNo}:</b> Garson Çağrısı Var</div>
-                                    <button class="btn-serve-sm" onclick="window.resolveOrder('${id}')">Kapat</button>
+                                    <button class="btn-serve-sm" onclick="window.resolveOrder('${id}')">Teslim Edildi</button>
                                 </div>
                             `;
                         } else if(data.type === 'order' && data.items) {
-                            // Tek tek hazır olan ürünleri kompakt satır olarak listele
+                            // Sadece hazır olan ve henüz teslim edilmemiş (served: true olmayan) ürünleri listele
                             data.items.forEach((item, idx) => {
-                                if(item.ready === true) {
+                                if(item.ready === true && item.served !== true) {
                                     notifHtml += `
                                         <div class="notif-row ready-row">
                                             <div class="notif-text">✅ <b>Masa ${data.tableNo}:</b> ${item.name} Hazır!</div>
-                                            <button class="btn-serve-sm" onclick="window.resolveOrder('${id}')">Götürüldü</button>
+                                            <button class="btn-serve-sm" onclick="window.markItemServed('${id}', ${idx})">Teslim Edildi</button>
                                         </div>
                                     `;
                                 }
@@ -249,6 +248,29 @@
 
             loadMenu();
         }
+
+        // Tek bir ürünün teslim edildiğini işaretleme fonksiyonu (diğer ürünler ekranda kalır)
+        window.markItemServed = async (orderId, itemIndex) => {
+            try {
+                const orderRef = doc(db, "orders", orderId);
+                const orderSnap = await getDoc(orderRef);
+                if(orderSnap.exists()) {
+                    let items = orderSnap.data().items || [];
+                    items[itemIndex].served = true; // Sadece bu ürünü teslim edildi işaretle
+
+                    // Eğer siparişteki TÜM ürünler teslim edildiyse, siparişi komple completed yapabiliriz veya bırakabiliriz.
+                    let allServed = items.every(i => i.ready === true && i.served === true);
+                    let updateData = { items: items };
+                    if(allServed) {
+                        updateData.status = 'completed';
+                    }
+
+                    await updateDoc(orderRef, updateData);
+                }
+            } catch(e) {
+                alert("İşlem sırasında hata oluştu.");
+            }
+        };
 
         window.resolveOrder = async (orderId) => {
             try {
@@ -272,11 +294,16 @@
                 const orderEvents = events.filter(e => e.type === 'order');
                 
                 let hasOrder = orderEvents.length > 0;
-                let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true));
+                // Masadaki tüm ürünler hazır ve teslim edildiyse veya hepsi hazırsa duruma göre renklendir
+                let allItemsReady = hasOrder && orderEvents.every(ev => ev.items && ev.items.every(item => item.ready === true && item.served === true));
+                let someItemReady = hasOrder && orderEvents.some(ev => ev.items && ev.items.some(item => item.ready === true && item.served !== true));
 
                 if(allItemsReady) {
+                    statusClass = 'table-empty'; 
+                    statusText = 'Boş / Teslim Edildi'; 
+                } else if(someItemReady) {
                     statusClass = 'table-ready'; 
-                    statusText = '✅ Tümü Hazır'; 
+                    statusText = '✅ Hazır Ürün var';
                 } else if(hasOrder) { 
                     statusClass = 'table-order'; 
                     statusText = '🔥 Hazırlanıyor'; 
@@ -306,8 +333,8 @@
                     let itemListHtml = '<ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 13px;">';
                     if (ev.items) {
                         ev.items.forEach(item => {
-                            let readyBadge = item.ready ? '<span style="color:var(--success); font-weight:bold;">(Hazır)</span>' : '<span style="color:var(--text-muted);">(Hazırlanıyor)</span>';
-                            itemListHtml += `<li>${item.name} - ${item.price} TL ${readyBadge}</li>`;
+                            let statusBadge = item.served ? '<span style="color:var(--success); font-weight:bold;">(Teslim Edildi)</span>' : (item.ready ? '<span style="color:var(--success);">(Hazır)</span>' : '<span style="color:var(--text-muted);">(Hazırlanıyor)</span>');
+                            itemListHtml += `<li>${item.name} - ${item.price} TL ${statusBadge}</li>`;
                         });
                     }
                     itemListHtml += '</ul>';
@@ -387,7 +414,7 @@
         document.getElementById('placeOrderBtn').onclick = async () => {
             if(!currentTableNo || cart.length === 0) return;
             const btn = document.getElementById('placeOrderBtn'); btn.innerText = "İletiliyor..."; btn.disabled = true;
-            const total = cart.reduce((sum, item) => sum + Number(item.price), 0), orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price, ready: false }));
+            const total = cart.reduce((sum, item) => sum + Number(item.price), 0), orderItems = cart.map(item => ({ id: item.id, name: item.name, price: item.price, ready: false, served: false }));
             try {
                 await addDoc(collection(db, "orders"), { type: "order", tableNo: Number(currentTableNo), items: orderItems, totalPrice: total, status: "pending", createdAt: new Date() });
                 alert(`Masa ${currentTableNo} siparişi iletildi!`);
