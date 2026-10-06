@@ -810,9 +810,11 @@
         // YENİ EKLENEN N8N ENTEGRASYON KODLARI
         // ==========================================
         
-        // KENDİ N8N WEBHOOK URL'LERİNİZİ BURAYA YAPIŞTIRIN
-        const N8N_IMAGE_WEBHOOK_URL = "https://<n8n-sunucunuz>/webhook/ai-image-generate";
-        const N8N_MENU_WEBHOOK_URL = "https://<n8n-sunucunuz>/webhook/ai-menu-read";
+        // SENİN URL'İN BURAYA EKLENDİ
+        const N8N_IMAGE_WEBHOOK_URL = "https://kaizen-n8n.app.n8n.cloud/webhook-test/ai-image-generate";
+        
+        // Bu menü okuma için boş, onu da yapınca buraya ekleriz.
+        const N8N_MENU_WEBHOOK_URL = "https://<n8n-sunucunuz>/webhook/ai-menu-read"; 
 
         // --- AI İLE GÖRSEL ÜRET ---
         document.getElementById('aiImageGenBtn').addEventListener('click', async () => {
