@@ -43,7 +43,8 @@
         .form-group.full { grid-column: span 2; }
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit; }
         #imagePreview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; display: none; }
-        #aiGeneratedImagePreview { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; display: none; }
+        #aiGeneratedImagePreview { width: 160px; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; display: none; }
+        #aiStatusMsg { font-size: 13px; color: var(--muted); margin-top: 8px; }
 
         .file-upload-wrapper { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 5px; gap: 10px; }
         .file-upload-wrapper input[type="file"] { border: none; padding: 0; flex-grow: 1; }
@@ -63,6 +64,7 @@
         .table-empty { border-color: #dcdde1; color: var(--muted); }
         .table-waiter { background: var(--edit); color: white; border-color: var(--edit); }
         .table-order { background: var(--primary); color: white; border-color: var(--primary); }
+        .table-ready { background: var(--success); color: white; border-color: var(--success); }
         .table-payment { background: var(--info); color: white; border-color: var(--info); }
         .table-status { font-size: 0.75rem; font-weight: 400; margin-top: 4px; background: rgba(0,0,0,0.15); padding: 2px 8px; border-radius: 20px; }
         .table-price-tag { font-size: 0.8rem; font-weight: 600; margin-top: 4px; color: #fff; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 6px; }
@@ -132,7 +134,6 @@
             <div class="header">
                 <h2 id="formTitle">Yeni Ürün Ekle</h2>
                 <div class="header-btns">
-                    <!-- AI MENÜ OKU BUTONU EKLENDİ -->
                     <button id="aiMenuReadBtn" class="btn btn-purple">🤖 AI Menü Oku</button>
                     <button id="openCodeModalBtn" class="btn btn-code">Kod ile Ekle</button>
                     <button id="deleteAllBtn" class="btn btn-danger">Hepsini Sil</button>
@@ -166,17 +167,15 @@
                 </div>
                 <div class="form-group full">
                     <label>Yemek Fotoğrafı Seç</label>
-                    <!-- DOSYA SEÇİM ALANI VE AI GÖRSEL ÜRET BUTONU -->
                     <div class="file-upload-wrapper">
                         <input type="file" id="pImageFile" accept="image/*">
                         <button type="button" id="aiImageGenBtn" class="btn btn-yellow">✨ AI ile Görsel Üret</button>
                     </div>
                     
-                    <!-- Manuel Seçilen Resim İçin Önizleme -->
                     <img id="imagePreview" alt="Ön izleme">
-                    <!-- AI'dan Gelen Resim İçin Önizleme ve Gizli URL Inputu -->
                     <img id="aiGeneratedImagePreview" alt="AI Üretimi">
                     <input type="hidden" id="aiGeneratedImageUrl">
+                    <div id="aiStatusMsg"></div>
                 </div>
                 
                 <div class="form-group full" style="display: flex; align-items: center; margin-top: 15px;">
@@ -263,7 +262,6 @@
         </div>
     </div>
 
-    <!-- Orijinal Firebase ve JS Mantığınız -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
@@ -699,15 +697,16 @@
         const imagePreview = document.getElementById('imagePreview');
         const aiGeneratedPreview = document.getElementById('aiGeneratedImagePreview');
         const aiGeneratedUrlInput = document.getElementById('aiGeneratedImageUrl');
+        const aiStatusMsg = document.getElementById('aiStatusMsg');
 
         fileInput.onchange = () => { 
             const [f] = fileInput.files; 
             if(f) { 
                 imagePreview.src = URL.createObjectURL(f); 
                 imagePreview.style.display = 'block'; 
-                // Yeni manuel resim seçilirse, AI resmini sıfırla
                 aiGeneratedPreview.style.display = 'none';
                 aiGeneratedUrlInput.value = '';
+                aiStatusMsg.innerText = '';
             } 
         };
 
@@ -720,21 +719,18 @@
             try {
                 let finalImageUrl = "";
                 
-                // Önce manuel bir dosya seçilmiş mi kontrol et
                 if (fileInput.files.length > 0) {
                     const fd = new FormData(); fd.append('image', fileInput.files[0]);
                     const res = await fetch('https://api.imgbb.com/1/upload?key=b644a5f26257bdfb722d1b474a850ff0', { method: 'POST', body: fd });
                     const rData = await res.json();
                     if(rData.success) finalImageUrl = rData.data.url;
                 } 
-                // Dosya seçilmediyse, AI tarafından üretilen bir resim URL'si var mı bak
                 else if (aiGeneratedUrlInput.value) {
                     finalImageUrl = aiGeneratedUrlInput.value;
                 }
 
                 if (editId) {
                     const uData = { name, category, oldPrice, price, desc };
-                    // Sadece yeni bir resim yüklendiyse (manuel veya AI) update et, yoksa eski resmi koru
                     if(finalImageUrl) uData.imageUrl = finalImageUrl;
                     await updateDoc(doc(db, "products", editId), uData);
                 } else {
@@ -770,10 +766,10 @@
                 document.getElementById('pPrice').value = data.price;
                 document.getElementById('pDesc').value = data.desc || '';
                 
-                // Resimleri Sıfırla
                 imagePreview.style.display = 'none';
                 aiGeneratedPreview.style.display = 'none';
                 aiGeneratedUrlInput.value = '';
+                aiStatusMsg.innerText = '';
 
                 if(data.imageUrl) { 
                     imagePreview.src = data.imageUrl; 
@@ -796,6 +792,7 @@
             imagePreview.style.display = 'none'; imagePreview.src = '';
             aiGeneratedPreview.style.display = 'none'; aiGeneratedPreview.src = '';
             aiGeneratedUrlInput.value = '';
+            aiStatusMsg.innerText = '';
 
             document.getElementById('formTitle').innerText = "Yeni Ürün Ekle";
             document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
@@ -807,18 +804,19 @@
         };
 
         // ==========================================
-        // YENİ EKLENEN N8N ENTEGRASYON KODLARI
+        // N8N ENTEGRASYONU
         // ==========================================
         
-        // SENİN URL'İN BURAYA EKLENDİ
-        const N8N_IMAGE_WEBHOOK_URL = "https://kaizen-n8n.app.n8n.cloud/webhook-test/ai-image-generate";
+        // CANLI (Production) webhook adresi. "webhook-test" DEĞİL, "webhook".
+        const N8N_IMAGE_WEBHOOK_URL = "https://kaizen-n8n.app.n8n.cloud/webhook/ai-image-generate";
         
-        // Bu menü okuma için boş, onu da yapınca buraya ekleriz.
+        // Menü okuma henüz hazır değil
         const N8N_MENU_WEBHOOK_URL = "https://<n8n-sunucunuz>/webhook/ai-menu-read"; 
 
         // --- AI İLE GÖRSEL ÜRET ---
         document.getElementById('aiImageGenBtn').addEventListener('click', async () => {
             const productName = document.getElementById('pName').value.trim();
+            const category = document.getElementById('pCategory').value;
             
             if (!productName) {
                 alert("Lütfen görsel üretmeden önce 'Ürün Adı' alanını doldurunuz.");
@@ -830,6 +828,8 @@
             const originalText = btn.innerHTML;
             btn.innerHTML = "⏳ Üretiliyor...";
             btn.disabled = true;
+            aiStatusMsg.style.color = 'var(--muted)';
+            aiStatusMsg.innerText = `"${productName}" için görsel hazırlanıyor, bu 10-40 saniye sürebilir...`;
 
             try {
                 const response = await fetch(N8N_IMAGE_WEBHOOK_URL, {
@@ -837,41 +837,47 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         productName: productName,
-                        promptInstruction: "Professional food photography, appetizing, high quality"
+                        category: category,
+                        cafeName: "Yakın Kafe"
                     })
                 });
                 
-                if (!response.ok) throw new Error("Ağ hatası");
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Sunucu ${response.status} döndü: ${errText.slice(0, 200)}`);
+                }
 
                 const data = await response.json();
                 
-                // n8n'den gelen verinin imageUrl olduğunu varsayıyoruz
                 if (data && data.imageUrl) {
-                    // Firebase veritabanına kaydederken kullanmak üzere gizli inputa URL'i ata
-                    document.getElementById('aiGeneratedImageUrl').value = data.imageUrl;
+                    aiGeneratedUrlInput.value = data.imageUrl;
+                    aiGeneratedPreview.src = data.imageUrl;
+                    aiGeneratedPreview.style.display = 'block';
                     
-                    // Önizlemeyi göster
-                    const preview = document.getElementById('aiGeneratedImagePreview');
-                    preview.src = data.imageUrl;
-                    preview.style.display = 'block';
-                    
-                    // Manuel resim varsa onu gizle/sıfırla
-                    document.getElementById('imagePreview').style.display = 'none';
-                    document.getElementById('pImageFile').value = '';
+                    imagePreview.style.display = 'none';
+                    fileInput.value = '';
+
+                    aiStatusMsg.style.color = 'var(--success)';
+                    aiStatusMsg.innerText = "✅ Görsel hazır. Beğendiysen 'Ürünü Kaydet'e bas, beğenmediysen tekrar üret.";
                 } else {
-                    alert("N8N'den geçerli bir görsel URL'si dönmedi. Dönen veri: " + JSON.stringify(data));
+                    throw new Error("Geçerli görsel linki dönmedi: " + JSON.stringify(data));
                 }
             } catch (error) {
                 console.error("Görsel üretimi hatası:", error);
-                alert("N8N sunucusuna ulaşılamadı. Webhook URL'sini kontrol edin.");
+                aiStatusMsg.style.color = 'var(--danger)';
+                aiStatusMsg.innerText = "❌ Görsel üretilemedi. " + error.message;
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         });
 
-        // --- AI MENÜ OKU ---
+        // --- AI MENÜ OKU (henüz bağlı değil) ---
         document.getElementById('aiMenuReadBtn').addEventListener('click', async () => {
+            if (N8N_MENU_WEBHOOK_URL.includes('<n8n-sunucunuz>')) {
+                alert("AI Menü Oku özelliği henüz kurulmadı.");
+                return;
+            }
             const btn = document.getElementById('aiMenuReadBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = "⏳ Menü Okunuyor...";
@@ -888,7 +894,6 @@
 
                 const data = await response.json();
                 
-                // N8N'den dönen JSON verisine göre form alanlarını doldurma (Örnek)
                 if (data) {
                     if(data.name) document.getElementById('pName').value = data.name;
                     if(data.price) document.getElementById('pPrice').value = data.price;
@@ -914,5 +919,7 @@
         });
 
     </script>
+</body>
+</html>
 </body>
 </html>
