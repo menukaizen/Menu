@@ -162,8 +162,12 @@
                     <input type="number" id="pPrice" placeholder="440">
                 </div>
                 <div class="form-group full">
-                    <label>Açıklama</label>
-                    <textarea id="pDesc" rows="2" placeholder="İçindeki malzemeler..."></textarea>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px; flex-wrap:wrap;">
+                        <label>Açıklama</label>
+                        <button type="button" id="aiDescGenBtn" class="btn btn-purple">🤖 AI ile Açıklama Yaz</button>
+                    </div>
+                    <textarea id="pDesc" rows="3" placeholder="İçindeki malzemeler..."></textarea>
+                    <div id="aiDescStatusMsg" style="font-size:13px; color:var(--muted); margin-top:6px;"></div>
                 </div>
                 <div class="form-group full">
                     <label>Yemek Fotoğrafı Seç</label>
@@ -793,6 +797,7 @@
             aiGeneratedPreview.style.display = 'none'; aiGeneratedPreview.src = '';
             aiGeneratedUrlInput.value = '';
             aiStatusMsg.innerText = '';
+            document.getElementById('aiDescStatusMsg').innerText = '';
 
             document.getElementById('formTitle').innerText = "Yeni Ürün Ekle";
             document.getElementById('saveBtn').innerText = "Ürünü Kaydet";
@@ -810,6 +815,9 @@
         // CANLI (Production) webhook adresi. "webhook-test" DEĞİL, "webhook".
         const N8N_IMAGE_WEBHOOK_URL = "https://kaizen-n8n.app.n8n.cloud/webhook/ai-image-generate";
         
+        // Açıklama (Gemini - ücretsiz)
+        const N8N_DESC_WEBHOOK_URL = "https://kaizen-n8n.app.n8n.cloud/webhook/ai-description";
+
         // Menü okuma henüz hazır değil
         const N8N_MENU_WEBHOOK_URL = "https://<n8n-sunucunuz>/webhook/ai-menu-read"; 
 
@@ -872,6 +880,59 @@
             }
         });
 
+        // --- AI İLE AÇIKLAMA YAZ ---
+        document.getElementById('aiDescGenBtn').addEventListener('click', async () => {
+            const productName = document.getElementById('pName').value.trim();
+            const category = document.getElementById('pCategory').value;
+            const descBox = document.getElementById('pDesc');
+            const descStatus = document.getElementById('aiDescStatusMsg');
+
+            if (!productName) {
+                alert("Lütfen önce 'Ürün Adı' alanını doldurunuz.");
+                document.getElementById('pName').focus();
+                return;
+            }
+            if (descBox.value.trim() && !confirm("Mevcut açıklamanın yerine AI açıklaması yazılsın mı?")) {
+                return;
+            }
+
+            const btn = document.getElementById('aiDescGenBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "⏳ Yazılıyor...";
+            btn.disabled = true;
+            descStatus.style.color = 'var(--muted)';
+            descStatus.innerText = "Açıklama hazırlanıyor...";
+
+            try {
+                const response = await fetch(N8N_DESC_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productName, category })
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Sunucu ${response.status} döndü: ${errText.slice(0, 200)}`);
+                }
+
+                const data = await response.json();
+                if (data && data.desc) {
+                    descBox.value = data.desc;
+                    descStatus.style.color = 'var(--success)';
+                    descStatus.innerText = "✅ Açıklama yazıldı. Kalori ve alerjenler tahminidir, kendi tarifine göre kontrol edip düzelt.";
+                } else {
+                    throw new Error("Geçerli açıklama dönmedi: " + JSON.stringify(data));
+                }
+            } catch (error) {
+                console.error("Açıklama hatası:", error);
+                descStatus.style.color = 'var(--danger)';
+                descStatus.innerText = "❌ Açıklama yazılamadı. " + error.message;
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
         // --- AI MENÜ OKU (henüz bağlı değil) ---
         document.getElementById('aiMenuReadBtn').addEventListener('click', async () => {
             if (N8N_MENU_WEBHOOK_URL.includes('<n8n-sunucunuz>')) {
@@ -919,7 +980,5 @@
         });
 
     </script>
-</body>
-</html>
 </body>
 </html>
